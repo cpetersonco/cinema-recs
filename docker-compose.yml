@@ -1,0 +1,16 @@
+services:
+  cinema-recs:
+    build: .
+    container_name: cinema-recs
+    environment:
+      CINEMA_RECS_SOURCE_URL: "${CINEMA_RECS_SOURCE_URL:?set to the Cinepolis McKinney showtimes URL}"
+      CINEMA_RECS_REFRESH_INTERVAL_HOURS: "${CINEMA_RECS_REFRESH_INTERVAL_HOURS:-3}"
+      CINEMA_RECS_DATA_DIR: /data
+      CINEMA_RECS_PORT: "8080"
+      PUID: "${PUID:-99}"
+      PGID: "${PGID:-100}"
+    volumes:
+      - ./data:/data
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
