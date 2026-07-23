@@ -15,6 +15,8 @@ def config(tmp_path):
         data_dir=str(tmp_path),
         port=8080,
         tmdb_api_key="test-tmdb-key",
+        letterboxd_username=None,
+        letterboxd_rating_threshold=None,
     )
 
 
@@ -101,6 +103,49 @@ def test_listing_renders_normally_for_unmatched_movie(client, config, cinema):
 
     assert response.status_code == 200
     assert b"Unknown Movie" in response.data
+
+
+def test_listing_shows_recommended_badge_and_reasons(client, config, cinema):
+    storage.upsert_showtime(
+        config.db_path, cinema.id, "Beloved Classic", date(2026, 8, 1), time(18, 30),
+        "Standard", datetime(2026, 8, 1, 10, 0, 0),
+    )
+    storage.upsert_movie_metadata(config.db_path, "Beloved Classic", match_status="matched", tmdb_id=42)
+    storage.upsert_movie_recommendation(config.db_path, "Beloved Classic", is_recommended=True, reasons="watchlist,rating")
+
+    response = client.get("/")
+
+    assert response.status_code == 200
+    assert "⭐".encode() in response.data
+    assert b"watchlist,rating" in response.data
+
+
+def test_listing_renders_normally_for_non_recommended_movie(client, config, cinema):
+    storage.upsert_showtime(
+        config.db_path, cinema.id, "Ordinary Movie", date(2026, 8, 1), time(18, 30),
+        "Standard", datetime(2026, 8, 1, 10, 0, 0),
+    )
+    storage.upsert_movie_metadata(config.db_path, "Ordinary Movie", match_status="matched", tmdb_id=99)
+    storage.upsert_movie_recommendation(config.db_path, "Ordinary Movie", is_recommended=False, reasons=None)
+
+    response = client.get("/")
+
+    assert response.status_code == 200
+    assert b"Ordinary Movie" in response.data
+    assert "⭐".encode() not in response.data
+
+
+def test_listing_renders_normally_for_not_yet_evaluated_movie(client, config, cinema):
+    storage.upsert_showtime(
+        config.db_path, cinema.id, "Fresh Movie", date(2026, 8, 1), time(18, 30),
+        "Standard", datetime(2026, 8, 1, 10, 0, 0),
+    )
+
+    response = client.get("/")
+
+    assert response.status_code == 200
+    assert b"Fresh Movie" in response.data
+    assert "⭐".encode() not in response.data
 
 
 def test_health_shows_failure_distinct_from_zero_success(client, config, cinema):

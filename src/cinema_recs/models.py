@@ -59,3 +59,22 @@ class EnrichmentAttempt:
     attempted_at: datetime
     outcome: str  # "matched", "unmatched", or "failed"
     error_message: Optional[str]
+
+
+@dataclass
+class LetterboxdMovieData:
+    id: Optional[int]
+    movie_title: str
+    tmdb_id: int
+    letterboxd_slug: Optional[str]
+    average_rating: Optional[float]
+    fetched_at: datetime
+
+
+@dataclass
+class MovieRecommendation:
+    id: Optional[int]
+    movie_title: str
+    is_recommended: bool
+    reasons: Optional[str]
+    evaluated_at: datetime

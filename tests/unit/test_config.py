@@ -36,3 +36,37 @@ def test_load_config_raises_without_source_url(monkeypatch):
 
     with pytest.raises(RuntimeError):
         load_config()
+
+
+def test_load_config_letterboxd_settings_default_to_unset(monkeypatch):
+    monkeypatch.setenv("CINEMA_RECS_SOURCE_URL", "https://example.com/mckinney")
+    monkeypatch.setenv("TMDB_API_KEY", "tmdb-key")
+    monkeypatch.delenv("LETTERBOXD_USERNAME", raising=False)
+    monkeypatch.delenv("LETTERBOXD_RATING_THRESHOLD", raising=False)
+
+    config = load_config()
+
+    assert config.letterboxd_username is None
+    assert config.letterboxd_rating_threshold is None
+
+
+def test_load_config_reads_letterboxd_settings(monkeypatch):
+    monkeypatch.setenv("CINEMA_RECS_SOURCE_URL", "https://example.com/mckinney")
+    monkeypatch.setenv("TMDB_API_KEY", "tmdb-key")
+    monkeypatch.setenv("LETTERBOXD_USERNAME", "daveyj")
+    monkeypatch.setenv("LETTERBOXD_RATING_THRESHOLD", "4.0")
+
+    config = load_config()
+
+    assert config.letterboxd_username == "daveyj"
+    assert config.letterboxd_rating_threshold == 4.0
+
+
+def test_load_config_treats_invalid_rating_threshold_as_unset(monkeypatch):
+    monkeypatch.setenv("CINEMA_RECS_SOURCE_URL", "https://example.com/mckinney")
+    monkeypatch.setenv("TMDB_API_KEY", "tmdb-key")
+    monkeypatch.setenv("LETTERBOXD_RATING_THRESHOLD", "not-a-number")
+
+    config = load_config()
+
+    assert config.letterboxd_rating_threshold is None

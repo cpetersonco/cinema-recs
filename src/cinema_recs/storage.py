@@ -4,7 +4,15 @@ from contextlib import contextmanager
 from datetime import date, datetime, time
 from typing import Iterator, Optional
 
-from cinema_recs.models import Cinema, EnrichmentAttempt, IngestionRun, MovieMetadata, Showtime
+from cinema_recs.models import (
+    Cinema,
+    EnrichmentAttempt,
+    IngestionRun,
+    LetterboxdMovieData,
+    MovieMetadata,
+    MovieRecommendation,
+    Showtime,
+)
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS cinema (
@@ -59,6 +67,31 @@ CREATE TABLE IF NOT EXISTS enrichment_attempt (
     attempted_at TEXT NOT NULL,
     outcome TEXT NOT NULL,
     error_message TEXT
+);
+
+CREATE TABLE IF NOT EXISTS letterboxd_movie_data (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    movie_title TEXT NOT NULL UNIQUE,
+    tmdb_id INTEGER NOT NULL,
+    letterboxd_slug TEXT,
+    average_rating REAL,
+    fetched_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS letterboxd_reference_list (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    list_key TEXT NOT NULL,
+    film_slug TEXT NOT NULL,
+    fetched_at TEXT NOT NULL,
+    UNIQUE (list_key, film_slug)
+);
+
+CREATE TABLE IF NOT EXISTS movie_recommendation (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    movie_title TEXT NOT NULL UNIQUE,
+    is_recommended INTEGER NOT NULL,
+    reasons TEXT,
+    evaluated_at TEXT NOT NULL
 );
 """
 
@@ -400,4 +433,178 @@ def record_enrichment_attempt(
             attempted_at=attempted_at,
             outcome=outcome,
             error_message=error_message,
+        )
+
+
+def list_distinct_matched_movie_titles_without_letterboxd_data(db_path: str) -> list[str]:
+    """Matched (feature 002) movie titles with no letterboxd_movie_data row
+    yet — these are the titles recommendation evaluation still needs to
+    resolve against Letterboxd (spec FR-004/FR-012)."""
+    with get_connection(db_path) as conn:
+        rows = conn.execute(
+            """
+            SELECT m.movie_title FROM movie_metadata m
+            LEFT JOIN letterboxd_movie_data l ON l.movie_title = m.movie_title
+            WHERE m.match_status = 'matched' AND l.id IS NULL
+            """
+        ).fetchall()
+        return [row["movie_title"] for row in rows]
+
+
+def list_matched_movie_titles(db_path: str) -> list[str]:
+    """All feature-002-matched movie titles — the full set recommendation
+    evaluation must (re)compute a status for each cycle."""
+    with get_connection(db_path) as conn:
+        rows = conn.execute(
+            "SELECT movie_title FROM movie_metadata WHERE match_status = 'matched'"
+        ).fetchall()
+        return [row["movie_title"] for row in rows]
+
+
+def get_letterboxd_movie_data(db_path: str, movie_title: str) -> Optional[LetterboxdMovieData]:
+    with get_connection(db_path) as conn:
+        row = conn.execute(
+            "SELECT * FROM letterboxd_movie_data WHERE movie_title = ?", (movie_title,)
+        ).fetchone()
+        if row is None:
+            return None
+        return LetterboxdMovieData(
+            id=row["id"],
+            movie_title=row["movie_title"],
+            tmdb_id=row["tmdb_id"],
+            letterboxd_slug=row["letterboxd_slug"],
+            average_rating=row["average_rating"],
+            fetched_at=datetime.fromisoformat(row["fetched_at"]),
+        )
+
+
+def upsert_letterboxd_movie_data(
+    db_path: str,
+    movie_title: str,
+    tmdb_id: int,
+    letterboxd_slug: Optional[str],
+    average_rating: Optional[float],
+    fetched_at: Optional[datetime] = None,
+) -> LetterboxdMovieData:
+    fetched_at = fetched_at or datetime.utcnow()
+    with get_connection(db_path) as conn:
+        row = conn.execute(
+            "SELECT id FROM letterboxd_movie_data WHERE movie_title = ?", (movie_title,)
+        ).fetchone()
+
+        params = (tmdb_id, letterboxd_slug, average_rating, fetched_at.isoformat())
+
+        if row is not None:
+            conn.execute(
+                """
+                UPDATE letterboxd_movie_data SET
+                    tmdb_id = ?, letterboxd_slug = ?, average_rating = ?, fetched_at = ?
+                WHERE movie_title = ?
+                """,
+                params + (movie_title,),
+            )
+            data_id = row["id"]
+        else:
+            cursor = conn.execute(
+                """
+                INSERT INTO letterboxd_movie_data
+                    (movie_title, tmdb_id, letterboxd_slug, average_rating, fetched_at)
+                VALUES (?, ?, ?, ?, ?)
+                """,
+                (movie_title,) + params,
+            )
+            data_id = cursor.lastrowid
+
+        return LetterboxdMovieData(
+            id=data_id,
+            movie_title=movie_title,
+            tmdb_id=tmdb_id,
+            letterboxd_slug=letterboxd_slug,
+            average_rating=average_rating,
+            fetched_at=fetched_at,
+        )
+
+
+def get_reference_list_slugs(db_path: str, list_key: str) -> set[str]:
+    with get_connection(db_path) as conn:
+        rows = conn.execute(
+            "SELECT film_slug FROM letterboxd_reference_list WHERE list_key = ?", (list_key,)
+        ).fetchall()
+        return {row["film_slug"] for row in rows}
+
+
+def replace_reference_list_slugs(db_path: str, list_key: str, slugs: set[str]) -> None:
+    """Atomically replace all cached slugs for list_key. Only call this on a
+    *successful* fetch — on failure, leave the existing cache untouched
+    rather than treating the list as empty (data-model.md's resilience
+    rule for FR-002/FR-007's periodic re-evaluation requirement)."""
+    fetched_at = datetime.utcnow().isoformat()
+    with get_connection(db_path) as conn:
+        conn.execute("DELETE FROM letterboxd_reference_list WHERE list_key = ?", (list_key,))
+        conn.executemany(
+            """
+            INSERT INTO letterboxd_reference_list (list_key, film_slug, fetched_at)
+            VALUES (?, ?, ?)
+            """,
+            [(list_key, slug, fetched_at) for slug in slugs],
+        )
+
+
+def get_movie_recommendation(db_path: str, movie_title: str) -> Optional[MovieRecommendation]:
+    with get_connection(db_path) as conn:
+        row = conn.execute(
+            "SELECT * FROM movie_recommendation WHERE movie_title = ?", (movie_title,)
+        ).fetchone()
+        if row is None:
+            return None
+        return MovieRecommendation(
+            id=row["id"],
+            movie_title=row["movie_title"],
+            is_recommended=bool(row["is_recommended"]),
+            reasons=row["reasons"],
+            evaluated_at=datetime.fromisoformat(row["evaluated_at"]),
+        )
+
+
+def upsert_movie_recommendation(
+    db_path: str,
+    movie_title: str,
+    is_recommended: bool,
+    reasons: Optional[str] = None,
+    evaluated_at: Optional[datetime] = None,
+) -> MovieRecommendation:
+    evaluated_at = evaluated_at or datetime.utcnow()
+    with get_connection(db_path) as conn:
+        row = conn.execute(
+            "SELECT id FROM movie_recommendation WHERE movie_title = ?", (movie_title,)
+        ).fetchone()
+
+        params = (int(is_recommended), reasons, evaluated_at.isoformat())
+
+        if row is not None:
+            conn.execute(
+                """
+                UPDATE movie_recommendation SET
+                    is_recommended = ?, reasons = ?, evaluated_at = ?
+                WHERE movie_title = ?
+                """,
+                params + (movie_title,),
+            )
+            rec_id = row["id"]
+        else:
+            cursor = conn.execute(
+                """
+                INSERT INTO movie_recommendation (movie_title, is_recommended, reasons, evaluated_at)
+                VALUES (?, ?, ?, ?)
+                """,
+                (movie_title,) + params,
+            )
+            rec_id = cursor.lastrowid
+
+        return MovieRecommendation(
+            id=rec_id,
+            movie_title=movie_title,
+            is_recommended=is_recommended,
+            reasons=reasons,
+            evaluated_at=evaluated_at,
         )

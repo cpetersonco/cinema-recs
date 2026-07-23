@@ -2,7 +2,12 @@ from flask import Flask, render_template_string
 
 from cinema_recs.config import Config
 from cinema_recs.models import Cinema
-from cinema_recs.storage import get_latest_ingestion_run, get_movie_metadata, list_active_showtimes
+from cinema_recs.storage import (
+    get_latest_ingestion_run,
+    get_movie_metadata,
+    get_movie_recommendation,
+    list_active_showtimes,
+)
 
 TMDB_POSTER_BASE_URL = "https://image.tmdb.org/t/p/w200"
 
@@ -12,9 +17,10 @@ LISTING_TEMPLATE = """
 <h1>{{ cinema.name }} Showtimes</h1>
 {% if showtimes %}
 <table border="1" cellpadding="6">
-  <tr><th>Movie</th><th>Date</th><th>Start Time</th><th>Format</th><th>Genre</th><th>Rating</th><th>Poster</th></tr>
+  <tr><th>Movie</th><th>Date</th><th>Start Time</th><th>Format</th><th>Genre</th><th>Rating</th><th>Poster</th><th>Recommended</th></tr>
   {% for s in showtimes %}
-  <tr>
+  {% set recommendation = movie_recommendation_by_title.get(s.movie_title) %}
+  <tr{% if recommendation and recommendation.is_recommended %} style="background-color: #fff3cd;"{% endif %}>
     <td>{{ s.movie_title }}</td>
     <td>{{ s.show_date }}</td>
     <td>{{ s.start_time }}</td>
@@ -35,6 +41,13 @@ LISTING_TEMPLATE = """
     <td>—</td>
     <td>—</td>
     {% endif %}
+    <td>
+      {% if recommendation and recommendation.is_recommended %}
+      ⭐ Recommended ({{ recommendation.reasons }})
+      {% else %}
+      —
+      {% endif %}
+    </td>
   </tr>
   {% endfor %}
 </table>
@@ -69,15 +82,19 @@ def create_app(config: Config, cinema: Cinema) -> Flask:
     @app.get("/")
     def listing():
         showtimes = list_active_showtimes(config.db_path, cinema.id)
+        distinct_titles = {s.movie_title for s in showtimes}
         movie_metadata_by_title = {
-            title: get_movie_metadata(config.db_path, title)
-            for title in {s.movie_title for s in showtimes}
+            title: get_movie_metadata(config.db_path, title) for title in distinct_titles
+        }
+        movie_recommendation_by_title = {
+            title: get_movie_recommendation(config.db_path, title) for title in distinct_titles
         }
         return render_template_string(
             LISTING_TEMPLATE,
             cinema=cinema,
             showtimes=showtimes,
             movie_metadata_by_title=movie_metadata_by_title,
+            movie_recommendation_by_title=movie_recommendation_by_title,
             poster_base_url=TMDB_POSTER_BASE_URL,
         )
 
