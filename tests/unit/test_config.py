@@ -5,6 +5,7 @@ from cinema_recs.config import load_config
 
 def test_load_config_reads_env_vars(monkeypatch):
     monkeypatch.setenv("CINEMA_RECS_SOURCE_URL", "https://example.com/mckinney")
+    monkeypatch.setenv("TMDB_API_KEY", "tmdb-key")
     monkeypatch.setenv("CINEMA_RECS_REFRESH_INTERVAL_HOURS", "4")
     monkeypatch.setenv("CINEMA_RECS_DATA_DIR", "/tmp/data")
     monkeypatch.setenv("CINEMA_RECS_PORT", "9090")
@@ -20,6 +21,7 @@ def test_load_config_reads_env_vars(monkeypatch):
 
 def test_load_config_uses_defaults_when_optional_vars_missing(monkeypatch):
     monkeypatch.setenv("CINEMA_RECS_SOURCE_URL", "https://example.com/mckinney")
+    monkeypatch.setenv("TMDB_API_KEY", "tmdb-key")
     monkeypatch.delenv("CINEMA_RECS_REFRESH_INTERVAL_HOURS", raising=False)
     monkeypatch.delenv("CINEMA_RECS_DATA_DIR", raising=False)
     monkeypatch.delenv("CINEMA_RECS_PORT", raising=False)

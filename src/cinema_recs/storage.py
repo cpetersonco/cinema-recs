@@ -167,6 +167,35 @@ def get_or_create_cinema(
         )
 
 
+def get_cinema_by_name(db_path: str, name: str) -> Optional[Cinema]:
+    with get_connection(db_path) as conn:
+        row = conn.execute("SELECT * FROM cinema WHERE name = ?", (name,)).fetchone()
+        if row is None:
+            return None
+        return Cinema(
+            id=row["id"],
+            name=row["name"],
+            location=row["location"],
+            source_url=row["source_url"],
+            created_at=datetime.fromisoformat(row["created_at"]),
+        )
+
+
+def ensure_texas_theatre_cinema(db_path: str) -> Cinema:
+    from cinema_recs.config import (
+        TEXAS_THEATRE_DEFAULT_URL,
+        TEXAS_THEATRE_LOCATION,
+        TEXAS_THEATRE_NAME,
+    )
+
+    return get_or_create_cinema(
+        db_path,
+        name=TEXAS_THEATRE_NAME,
+        location=TEXAS_THEATRE_LOCATION,
+        source_url=TEXAS_THEATRE_DEFAULT_URL,
+    )
+
+
 def upsert_showtime(
     db_path: str,
     cinema_id: int,

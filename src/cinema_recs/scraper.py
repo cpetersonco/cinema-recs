@@ -1,5 +1,6 @@
 import json
 import logging
+import re
 import time as time_module
 from datetime import date, datetime, time
 from typing import Any, NamedTuple
@@ -237,3 +238,202 @@ def scrape_showtimes(source_url: str, show_date: date | None = None) -> ScrapeRe
     showtimes = parse_showings_response(showings_response)
     reported_count = showings_response.get("count", len(showtimes))
     return ScrapeResult(showtimes=showtimes, reported_count=reported_count)
+
+
+# --- Texas Theatre Showtime Source Scraper ---
+
+FORMAT_PATTERNS = [
+    (re.compile(r"\b35mm\b", re.IGNORECASE), "35mm"),
+    (re.compile(r"\b70mm\b", re.IGNORECASE), "70mm"),
+    (re.compile(r"\b16mm\b", re.IGNORECASE), "16mm"),
+    (re.compile(r"\b4k\b", re.IGNORECASE), "4K"),
+    (re.compile(r"\b(dcp|digital)\b", re.IGNORECASE), "Digital"),
+]
+
+
+def extract_format(text: str) -> str | None:
+    if not text:
+        return None
+    for pattern, fmt_label in FORMAT_PATTERNS:
+        if pattern.search(text):
+            return fmt_label
+    return None
+
+
+def _parse_date_and_time_from_text(text: str) -> tuple[date | None, time | None]:
+    import re
+
+    clean_text = re.sub(r"<[^>]+>", " ", text)
+
+    parsed_date: date | None = None
+    iso_date_match = re.search(r"\b(\d{4})-(\d{2})-(\d{2})\b", clean_text)
+    if iso_date_match:
+        try:
+            parsed_date = date(
+                int(iso_date_match.group(1)),
+                int(iso_date_match.group(2)),
+                int(iso_date_match.group(3)),
+            )
+        except ValueError:
+            pass
+
+    if not parsed_date:
+        month_match = re.search(
+            r"\b(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+(\d{1,2})(?:st|nd|rd|th)?(?:\s*,?\s*(\d{4}))?\b",
+            clean_text,
+            re.IGNORECASE,
+        )
+        if month_match:
+            months = {
+                "jan": 1, "january": 1, "feb": 2, "february": 2, "mar": 3, "march": 3,
+                "apr": 4, "april": 4, "may": 5, "june": 6, "jun": 6, "july": 7, "jul": 7,
+                "aug": 8, "august": 8, "sep": 9, "september": 9, "oct": 10, "october": 10,
+                "nov": 11, "november": 11, "dec": 12, "december": 12,
+            }
+            m_str = month_match.group(1).lower()
+            m_num = months.get(m_str, 1)
+            day_num = int(month_match.group(2))
+            year_num = int(month_match.group(3)) if month_match.group(3) else datetime.now(tz=CENTRAL_TIME).year
+            try:
+                parsed_date = date(year_num, m_num, day_num)
+            except ValueError:
+                pass
+
+    parsed_time: time | None = None
+    time_match = re.search(r"\b(\d{1,2}):(\d{2})\s*(am|pm)?\b", clean_text, re.IGNORECASE)
+    if time_match:
+        hr = int(time_match.group(1))
+        mn = int(time_match.group(2))
+        ampm = (time_match.group(3) or "").lower()
+        if ampm == "pm" and hr < 12:
+            hr += 12
+        elif ampm == "am" and hr == 12:
+            hr = 0
+        try:
+            parsed_time = time(hr, mn)
+        except ValueError:
+            pass
+
+    return parsed_date, parsed_time
+
+
+def parse_texas_theatre_html(
+    html: str, base_url: str = "https://thetexastheatre.com"
+) -> tuple[list[ScrapedShowtime], int]:
+    import re
+
+    showtimes: list[ScrapedShowtime] = []
+
+    # Split HTML by event item containers (article, div, li)
+    raw_blocks = re.split(
+        r"(?=<article|<div[^>]+class=[\"'][^\"']*(?:event-item|event-card|event-entry|screening-item|showtime-item)|<li[^>]+class=[\"'][^\"']*(?:event-item|event-card|event-entry|screening-item|showtime-item))",
+        html,
+        flags=re.IGNORECASE,
+    )
+
+    event_blocks = [
+        b for b in raw_blocks
+        if re.search(r"<h[1-6]", b, re.IGNORECASE) or "/event/" in b.lower()
+    ]
+
+    if not event_blocks:
+        event_blocks = re.findall(
+            r"<a[^>]+href=[\"']([^\"']+/event/[^\"']+)[\"'][^>]*>(.*?)</a>",
+            html,
+            re.DOTALL | re.IGNORECASE,
+        )
+        if event_blocks:
+            reported_count = len(event_blocks)
+            for href, block_content in event_blocks:
+                ticket_url = href if href.startswith("http") else f"{base_url.rstrip('/')}/{href.lstrip('/')}"
+                title_match = re.search(r"<h[1-6][^>]*>(.*?)</h[1-6]>", block_content, re.IGNORECASE | re.DOTALL)
+                raw_title = title_match.group(1) if title_match else re.sub(r"<[^>]+>", " ", block_content)
+                title = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", "", raw_title)).strip()
+
+                fmt = extract_format(block_content) or extract_format(title)
+                dt, tm = _parse_date_and_time_from_text(block_content)
+                if title and dt and tm:
+                    showtimes.append(
+                        ScrapedShowtime(
+                            movie_title=title,
+                            show_date=dt,
+                            start_time=tm,
+                            format=fmt,
+                            ticket_url=ticket_url,
+                        )
+                    )
+            return showtimes, reported_count
+
+    reported_count = len(event_blocks)
+    for block in event_blocks:
+        title_match = re.search(r"<h[1-6][^>]*>(.*?)</h[1-6]>", block, re.IGNORECASE | re.DOTALL)
+        if not title_match:
+            title_match = re.search(r"class=[\"'][^\"']*title[^\"']*[\"'][^>]*>(.*?)<", block, re.IGNORECASE | re.DOTALL)
+
+        raw_title = title_match.group(1) if title_match else ""
+        movie_title = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", "", raw_title)).strip()
+
+        link_match = re.search(r"href=[\"']([^\"']+)[\"']", block, re.IGNORECASE)
+        ticket_url = None
+        if link_match:
+            href = link_match.group(1)
+            ticket_url = href if href.startswith("http") else f"{base_url.rstrip('/')}/{href.lstrip('/')}"
+
+        fmt = extract_format(block) or extract_format(movie_title)
+        dt, tm = _parse_date_and_time_from_text(block)
+
+        if movie_title and dt and tm:
+            showtimes.append(
+                ScrapedShowtime(
+                    movie_title=movie_title,
+                    show_date=dt,
+                    start_time=tm,
+                    format=fmt,
+                    ticket_url=ticket_url,
+                )
+            )
+
+    return showtimes, reported_count
+
+
+def fetch_texas_theatre_html(source_url: str, timeout_ms: int = 30_000) -> str:
+    last_error: Exception | None = None
+    for attempt in range(1, MAX_FETCH_ATTEMPTS + 1):
+        try:
+            with sync_playwright() as p:
+                browser = p.chromium.launch(headless=True)
+                context = browser.new_context(user_agent=REALISTIC_USER_AGENT)
+                Stealth().apply_to(context)
+                page = context.new_page()
+                page.goto(source_url, wait_until="domcontentloaded", timeout=timeout_ms)
+                html = page.content()
+                browser.close()
+
+                if looks_blocked(html):
+                    raise BlockedError(f"Blocked by bot protection for {source_url}")
+                return html
+        except (PlaywrightError, BlockedError, RuntimeError) as exc:
+            last_error = exc
+            logger.warning(
+                "Fetch attempt %d/%d failed for %s: %s",
+                attempt, MAX_FETCH_ATTEMPTS, source_url, exc,
+            )
+            if attempt < MAX_FETCH_ATTEMPTS:
+                time_module.sleep(RETRY_BACKOFF_SECONDS)
+
+    assert last_error is not None
+    raise last_error
+
+
+def scrape_texas_theatre_showtimes(
+    source_url: str = "https://thetexastheatre.com/calendar"
+) -> ScrapeResult:
+    logger.info("Starting Texas Theatre showtime scrape for %s", source_url)
+    html = fetch_texas_theatre_html(source_url)
+    showtimes, reported_count = parse_texas_theatre_html(html, base_url=source_url)
+    logger.info(
+        "Texas Theatre scrape complete: %d showtime(s) parsed out of %d reported events",
+        len(showtimes), reported_count,
+    )
+    return ScrapeResult(showtimes=showtimes, reported_count=reported_count)
+

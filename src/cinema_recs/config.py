@@ -6,6 +6,11 @@ from typing import Optional
 logger = logging.getLogger(__name__)
 
 
+TEXAS_THEATRE_NAME = "Texas Theatre"
+TEXAS_THEATRE_LOCATION = "Oak Cliff, Dallas, TX"
+TEXAS_THEATRE_DEFAULT_URL = "https://thetexastheatre.com/calendar"
+
+
 @dataclass(frozen=True)
 class Config:
     source_url: str

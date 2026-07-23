@@ -3,7 +3,7 @@ from datetime import datetime
 
 from cinema_recs import storage
 from cinema_recs.models import Cinema, IngestionRun
-from cinema_recs.scraper import scrape_showtimes
+from cinema_recs.scraper import scrape_showtimes, scrape_texas_theatre_showtimes
 
 logger = logging.getLogger(__name__)
 
@@ -12,7 +12,10 @@ def run_ingestion(db_path: str, cinema: Cinema) -> IngestionRun:
     started_at = datetime.utcnow()
 
     try:
-        result = scrape_showtimes(cinema.source_url)
+        if "thetexastheatre.com" in cinema.source_url.lower() or "texas theatre" in cinema.name.lower():
+            result = scrape_texas_theatre_showtimes(cinema.source_url)
+        else:
+            result = scrape_showtimes(cinema.source_url)
     except Exception as exc:  # noqa: BLE001 - any scrape failure is recorded, not raised
         logger.exception("Ingestion run failed for cinema %s", cinema.id)
         finished_at = datetime.utcnow()
