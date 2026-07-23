@@ -9,11 +9,15 @@ Movie titles are also enriched with genre/overview/rating/poster data from
 [TMDB](https://www.themoviedb.org/), cross-referenced against your
 [Letterboxd](https://letterboxd.com/) watchlist, rating preferences, and a
 built-in best-of list to flag recommended showtimes, and — when a showtime
-newly becomes recommended — announced via a Discord webhook. See
+newly becomes recommended — announced via a Discord webhook. If that
+notified showing is later cancelled or rescheduled by the cinema, a
+follow-up Discord alert is sent too, reusing the same webhook
+configuration (no separate setup required). See
 [`specs/001-cinepolis-showtime-ingestion/`](specs/001-cinepolis-showtime-ingestion/),
 [`specs/002-tmdb-metadata-enrichment/`](specs/002-tmdb-metadata-enrichment/),
 [`specs/003-showtime-recommendation-rules/`](specs/003-showtime-recommendation-rules/),
-and [`specs/004-showtime-notifications/`](specs/004-showtime-notifications/)
+[`specs/004-showtime-notifications/`](specs/004-showtime-notifications/),
+and [`specs/005-showtime-cancellation-alerts/`](specs/005-showtime-cancellation-alerts/)
 for the full specs, plans, and task breakdowns behind these features.
 
 ## Quickstart

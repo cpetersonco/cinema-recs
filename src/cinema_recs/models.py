@@ -88,3 +88,5 @@ class NotificationRecord:
     active: bool
     notified_at: Optional[datetime]
     last_delivery_outcome: Optional[str]  # "sent" or "failed"
+    notified_showtime_id: Optional[int]
+    disappearance_alerted: bool
