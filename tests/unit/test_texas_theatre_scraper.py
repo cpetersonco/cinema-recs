@@ -89,6 +89,16 @@ SAMPLE_HTML_WITH_NON_FILM_EVENTS = """
       </ul>
     </div>
   </div>
+  <div class="calendar-listing">
+    <div class="tags"><span class="film_and_event"></span></div>
+    <h3><a href="/films-and-events/mv-showcase">Davis &amp; Pellington Music Video Showcase</a></h3>
+    <div class="listing-showtimes">
+      <p>Showtimes: <span class="visually-hidden">Sun, Jul 27 </span></p>
+      <ul class="times">
+        <li><a class="use-ajax" href="/order/add-tickets/1004/nojs">8:00pm</a></li>
+      </ul>
+    </div>
+  </div>
 </div>
 </body>
 </html>

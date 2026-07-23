@@ -93,3 +93,48 @@ def test_run_enrichment_records_ambiguous_as_unmatched(mock_search, mock_match, 
     metadata = storage.get_movie_metadata(db_path, "The Great Adventure")
     assert metadata.match_status == "unmatched"
     assert metadata.tmdb_id is None
+
+
+@patch("cinema_recs.enrich.get_movie_details")
+@patch("cinema_recs.enrich.match_title")
+@patch("cinema_recs.enrich.search_movie")
+def test_run_enrichment_retries_with_event_suffix_stripped(
+    mock_search, mock_match, mock_details, db_path, cinema
+):
+    """A title like "Midsommar + Costume Contest" fails to match verbatim
+    but should be retried with the event descriptor stripped (real-world
+    case found via live Texas Theatre ingestion)."""
+    _seed_showtime(db_path, cinema, "Midsommar + Costume Contest")
+    mock_search.side_effect = [
+        [],  # raw title: no results
+        [TmdbSearchResult(1, "Midsommar", 1.0, 100, 2019)],  # cleaned title: matches
+    ]
+    mock_match.side_effect = [
+        MatchResult(status="unmatched"),
+        MatchResult(status="matched", tmdb_id=1),
+    ]
+    mock_details.return_value = TmdbMovieDetails(
+        tmdb_id=1, title="Midsommar", genres=["Horror"], overview="...",
+        release_year=2019, average_rating=7.1, runtime_minutes=148, poster_path="/m.jpg",
+    )
+
+    run_enrichment(db_path, "fake-key")
+
+    assert mock_search.call_count == 2
+    metadata = storage.get_movie_metadata(db_path, "Midsommar + Costume Contest")
+    assert metadata.match_status == "matched"
+    assert metadata.tmdb_id == 1
+
+
+@patch("cinema_recs.enrich.match_title")
+@patch("cinema_recs.enrich.search_movie")
+def test_run_enrichment_does_not_retry_when_title_has_no_event_suffix(
+    mock_search, mock_match, db_path, cinema
+):
+    _seed_showtime(db_path, cinema, "Obscure Title")
+    mock_search.return_value = []
+    mock_match.return_value = MatchResult(status="unmatched")
+
+    run_enrichment(db_path, "fake-key")
+
+    assert mock_search.call_count == 1

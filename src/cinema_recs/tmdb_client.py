@@ -110,6 +110,21 @@ def strip_promo_price_prefix(title: str) -> str:
     return _PROMO_PRICE_PREFIX_RE.sub("", title)
 
 
+# Repertory venues (e.g. Texas Theatre) append an event descriptor onto an
+# otherwise-real, matchable movie title — either a " + <descriptor>" suffix
+# ("Midsommar + Costume Contest", "The Adventures of Prince Achmed + Live
+# Score") or a trailing parenthetical festival branding ("The End of
+# Evangelion (EVANGELION 30th Movie Fest)") — that TMDB has no concept of
+# and which cause an otherwise-clean title to spuriously miss if searched
+# verbatim (verified against live Texas Theatre ingestion).
+_EVENT_SUFFIX_RE = re.compile(r"\s*\+.*$")
+_TRAILING_PAREN_RE = re.compile(r"\s*\([^()]*\)\s*$")
+
+
+def strip_event_suffix(title: str) -> str:
+    return _TRAILING_PAREN_RE.sub("", _EVENT_SUFFIX_RE.sub("", title)).strip()
+
+
 def _normalize_title(title: str) -> str:
     return re.sub(r"[^a-z0-9]+", "", strip_promo_price_prefix(title).lower())
 

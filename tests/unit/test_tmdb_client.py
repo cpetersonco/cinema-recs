@@ -7,6 +7,7 @@ from cinema_recs.tmdb_client import (
     get_movie_details,
     match_title,
     search_movie,
+    strip_event_suffix,
     strip_promo_price_prefix,
 )
 
@@ -169,3 +170,22 @@ def test_strip_promo_price_prefix_removes_dollar_amount():
 
 def test_strip_promo_price_prefix_leaves_normal_titles_unchanged():
     assert strip_promo_price_prefix("The Mask") == "The Mask"
+
+
+def test_strip_event_suffix_removes_plus_descriptor():
+    assert strip_event_suffix("Midsommar + Costume Contest") == "Midsommar"
+    assert strip_event_suffix("The Adventures of Prince Achmed + Live Score") == (
+        "The Adventures of Prince Achmed"
+    )
+
+
+def test_strip_event_suffix_removes_trailing_parenthetical():
+    assert (
+        strip_event_suffix("The End of Evangelion (EVANGELION 30th Movie Fest)")
+        == "The End of Evangelion"
+    )
+
+
+def test_strip_event_suffix_leaves_normal_titles_unchanged():
+    assert strip_event_suffix("The Mask") == "The Mask"
+    assert strip_event_suffix("2001: A Space Odyssey") == "2001: A Space Odyssey"

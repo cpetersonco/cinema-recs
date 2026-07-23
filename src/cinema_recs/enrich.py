@@ -1,9 +1,28 @@
 import logging
 
 from cinema_recs import storage
-from cinema_recs.tmdb_client import get_movie_details, match_title, search_movie, strip_promo_price_prefix
+from cinema_recs.tmdb_client import (
+    MatchResult,
+    get_movie_details,
+    match_title,
+    search_movie,
+    strip_event_suffix,
+    strip_promo_price_prefix,
+)
 
 logger = logging.getLogger(__name__)
+
+
+def _candidate_titles(title: str) -> list[str]:
+    """The raw title first, then an event-suffix-stripped variant if that
+    actually changes anything — repertory venues sometimes append an event
+    descriptor (" + Costume Contest", "(EVANGELION 30th Movie Fest)") onto
+    an otherwise-real, matchable title (tmdb_client.strip_event_suffix)."""
+    candidates = [title]
+    cleaned = strip_event_suffix(title)
+    if cleaned and cleaned != title:
+        candidates.append(cleaned)
+    return candidates
 
 
 def run_enrichment(db_path: str, tmdb_api_key: str) -> int:
@@ -13,13 +32,16 @@ def run_enrichment(db_path: str, tmdb_api_key: str) -> int:
 
     for title in titles:
         try:
-            results = search_movie(tmdb_api_key, strip_promo_price_prefix(title))
+            match = MatchResult(status="unmatched")
+            for candidate in _candidate_titles(title):
+                results = search_movie(tmdb_api_key, strip_promo_price_prefix(candidate))
+                match = match_title(candidate, results)
+                if match.status == "matched":
+                    break
         except Exception as exc:  # noqa: BLE001 - enrichment failures must not break ingestion
             logger.exception("Enrichment lookup failed for movie %r", title)
             storage.record_enrichment_attempt(db_path, title, outcome="failed", error_message=str(exc))
             continue
-
-        match = match_title(title, results)
 
         if match.status == "matched":
             try:

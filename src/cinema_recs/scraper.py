@@ -4,6 +4,7 @@ import re
 import time as time_module
 from datetime import date, datetime, time
 from typing import Any, NamedTuple
+from urllib.parse import urljoin
 from zoneinfo import ZoneInfo
 
 from bs4 import BeautifulSoup
@@ -267,7 +268,8 @@ def extract_format(text: str) -> str | None:
 NON_FILM_EVENT_KEYWORDS = re.compile(
     r"\b("
     r"live music|concert|comedy|stand-?up|karaoke|trivia|drag show|burlesque|"
-    r"book club|lecture|panel discussion|live podcast|open mic|dj set"
+    r"book club|lecture|panel discussion|live podcast|open mic|dj set|"
+    r"music video showcase"
     r")\b",
     re.IGNORECASE,
 )
@@ -336,9 +338,13 @@ def parse_texas_theatre_html(
     date, and one or more showtimes — each showtime is its own `<li>`
     with its own ticket link and (usually) its own `.film-format` span,
     since the same film can screen in different formats across its run.
-    Non-film venue events are marked by a `.tags span` class that doesn't
-    contain "film" (spec FR-008) and are skipped before being counted at
-    all, so they never trigger a false "partial" outcome in ingest.py.
+    Non-film venue events are excluded (spec FR-008) via a `.tags span`
+    class that doesn't contain "film", combined with a keyword heuristic
+    that also runs on tagged listings (the site's own "film_and_event"
+    tag isn't reliable alone — verified live against a listing tagged
+    that way despite being a pure "Music Video Showcase"). Excluded
+    listings are skipped before being counted at all, so they never
+    trigger a false "partial" outcome in ingest.py.
     """
     soup = BeautifulSoup(html, "html.parser")
     year = _extract_calendar_year(soup)
@@ -347,13 +353,21 @@ def parse_texas_theatre_html(
     reported_count = 0
 
     for listing in soup.select("div.calendar-listing"):
+        listing_text = listing.get_text(" ", strip=True)
+
         tag_span = listing.select_one(".tags span")
         if tag_span is not None:
             classes = tag_span.get("class") or [""]
             if "film" not in classes[0].lower():
                 continue  # a non-film-only venue event (e.g. live music, comedy)
-        elif is_non_film_event(listing.get_text(" ", strip=True)):
-            continue  # no recognizable tag markup — fall back to the keyword heuristic
+
+        # The site's own "film_and_event" tag is not reliable on its own —
+        # confirmed live against a "Davis & Pellington Music Video
+        # Showcase" listing tagged "film_and_event" despite not being a
+        # film at all — so the keyword heuristic runs unconditionally,
+        # not just as a fallback for untagged listings.
+        if is_non_film_event(listing_text):
+            continue
 
         title_el = listing.select_one("h3 a")
         title = title_el.get_text(" ", strip=True) if title_el else ""
@@ -361,7 +375,7 @@ def parse_texas_theatre_html(
         date_el = listing.select_one(".listing-showtimes .visually-hidden")
         show_date = _parse_listing_date(date_el.get_text(strip=True), year) if date_el else None
 
-        listing_format_fallback = extract_format(listing.get_text(" ", strip=True))
+        listing_format_fallback = extract_format(listing_text)
 
         for li in listing.select("ul.times li"):
             reported_count += 1
@@ -372,13 +386,11 @@ def parse_texas_theatre_html(
             start_time = _parse_listing_time(link.get_text(strip=True))
 
             href = (link.get("href") or "").strip()
-            ticket_url = None
-            if href:
-                ticket_url = (
-                    href
-                    if href.startswith("http")
-                    else f"{base_url.rstrip('/')}/{href.lstrip('/')}"
-                )
+            # urljoin (not naive string concat) since base_url is the
+            # /calendar page itself — a root-relative href like
+            # "/order/add-tickets/2016/nojs" must resolve against the
+            # site origin, not get appended onto "/calendar" too.
+            ticket_url = urljoin(base_url, href) if href else None
 
             format_el = li.select_one(".film-format")
             fmt = format_el.get_text(strip=True) if format_el else listing_format_fallback
