@@ -14,6 +14,7 @@ def config(tmp_path):
         refresh_interval_hours=3,
         data_dir=str(tmp_path),
         port=8080,
+        tmdb_api_key="test-tmdb-key",
     )
 
 
@@ -68,6 +69,38 @@ def test_health_shows_success_outcome(client, config, cinema):
     assert response.status_code == 200
     assert b"SUCCESS" in response.data
     assert b"5" in response.data
+
+
+def test_listing_shows_enriched_fields_for_matched_movie(client, config, cinema):
+    storage.upsert_showtime(
+        config.db_path, cinema.id, "The Great Adventure", date(2026, 8, 1), time(18, 30),
+        "Standard", datetime(2026, 8, 1, 10, 0, 0),
+    )
+    storage.upsert_movie_metadata(
+        config.db_path, "The Great Adventure", match_status="matched", tmdb_id=42,
+        tmdb_title="The Great Adventure", genres="Action, Adventure", average_rating=7.5,
+        poster_path="/poster.jpg",
+    )
+
+    response = client.get("/")
+
+    assert response.status_code == 200
+    assert b"Action, Adventure" in response.data
+    assert b"7.5" in response.data
+    assert b"/poster.jpg" in response.data
+
+
+def test_listing_renders_normally_for_unmatched_movie(client, config, cinema):
+    storage.upsert_showtime(
+        config.db_path, cinema.id, "Unknown Movie", date(2026, 8, 1), time(18, 30),
+        "Standard", datetime(2026, 8, 1, 10, 0, 0),
+    )
+    storage.upsert_movie_metadata(config.db_path, "Unknown Movie", match_status="unmatched")
+
+    response = client.get("/")
+
+    assert response.status_code == 200
+    assert b"Unknown Movie" in response.data
 
 
 def test_health_shows_failure_distinct_from_zero_success(client, config, cinema):

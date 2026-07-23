@@ -34,3 +34,28 @@ class IngestionRun:
     outcome: str  # "success", "failure", or "partial"
     showtimes_captured: int
     error_message: Optional[str]
+
+
+@dataclass
+class MovieMetadata:
+    id: Optional[int]
+    movie_title: str
+    match_status: str  # "matched" or "unmatched"
+    tmdb_id: Optional[int]
+    tmdb_title: Optional[str]
+    genres: Optional[str]
+    overview: Optional[str]
+    release_year: Optional[int]
+    average_rating: Optional[float]
+    runtime_minutes: Optional[int]
+    poster_path: Optional[str]
+    last_enriched_at: datetime
+
+
+@dataclass
+class EnrichmentAttempt:
+    id: Optional[int]
+    movie_title: str
+    attempted_at: datetime
+    outcome: str  # "matched", "unmatched", or "failed"
+    error_message: Optional[str]

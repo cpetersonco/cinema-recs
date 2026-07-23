@@ -4,7 +4,7 @@ from contextlib import contextmanager
 from datetime import date, datetime, time
 from typing import Iterator, Optional
 
-from cinema_recs.models import Cinema, IngestionRun, Showtime
+from cinema_recs.models import Cinema, EnrichmentAttempt, IngestionRun, MovieMetadata, Showtime
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS cinema (
@@ -35,6 +35,29 @@ CREATE TABLE IF NOT EXISTS ingestion_run (
     finished_at TEXT,
     outcome TEXT NOT NULL,
     showtimes_captured INTEGER NOT NULL,
+    error_message TEXT
+);
+
+CREATE TABLE IF NOT EXISTS movie_metadata (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    movie_title TEXT NOT NULL UNIQUE,
+    match_status TEXT NOT NULL,
+    tmdb_id INTEGER,
+    tmdb_title TEXT,
+    genres TEXT,
+    overview TEXT,
+    release_year INTEGER,
+    average_rating REAL,
+    runtime_minutes INTEGER,
+    poster_path TEXT,
+    last_enriched_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS enrichment_attempt (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    movie_title TEXT NOT NULL,
+    attempted_at TEXT NOT NULL,
+    outcome TEXT NOT NULL,
     error_message TEXT
 );
 """
@@ -235,4 +258,146 @@ def get_latest_ingestion_run(db_path: str, cinema_id: int) -> Optional[Ingestion
             outcome=row["outcome"],
             showtimes_captured=row["showtimes_captured"],
             error_message=row["error_message"],
+        )
+
+
+def list_distinct_movie_titles_without_metadata(db_path: str) -> list[str]:
+    """Distinct showtime movie titles that have no movie_metadata row yet
+    (per T010: these are the titles enrichment still needs to attempt)."""
+    with get_connection(db_path) as conn:
+        rows = conn.execute(
+            """
+            SELECT DISTINCT s.movie_title FROM showtime s
+            LEFT JOIN movie_metadata m ON m.movie_title = s.movie_title
+            WHERE m.id IS NULL
+            """
+        ).fetchall()
+        return [row["movie_title"] for row in rows]
+
+
+def get_movie_metadata(db_path: str, movie_title: str) -> Optional[MovieMetadata]:
+    with get_connection(db_path) as conn:
+        row = conn.execute(
+            "SELECT * FROM movie_metadata WHERE movie_title = ?", (movie_title,)
+        ).fetchone()
+        if row is None:
+            return None
+        return _row_to_movie_metadata(row)
+
+
+def _row_to_movie_metadata(row: sqlite3.Row) -> MovieMetadata:
+    return MovieMetadata(
+        id=row["id"],
+        movie_title=row["movie_title"],
+        match_status=row["match_status"],
+        tmdb_id=row["tmdb_id"],
+        tmdb_title=row["tmdb_title"],
+        genres=row["genres"],
+        overview=row["overview"],
+        release_year=row["release_year"],
+        average_rating=row["average_rating"],
+        runtime_minutes=row["runtime_minutes"],
+        poster_path=row["poster_path"],
+        last_enriched_at=datetime.fromisoformat(row["last_enriched_at"]),
+    )
+
+
+def upsert_movie_metadata(
+    db_path: str,
+    movie_title: str,
+    match_status: str,
+    tmdb_id: Optional[int] = None,
+    tmdb_title: Optional[str] = None,
+    genres: Optional[str] = None,
+    overview: Optional[str] = None,
+    release_year: Optional[int] = None,
+    average_rating: Optional[float] = None,
+    runtime_minutes: Optional[int] = None,
+    poster_path: Optional[str] = None,
+    enriched_at: Optional[datetime] = None,
+) -> MovieMetadata:
+    """Insert or replace the cached MovieMetadata row for movie_title (spec
+    FR-003's caching requirement: one row per distinct ingested title)."""
+    enriched_at = enriched_at or datetime.utcnow()
+    with get_connection(db_path) as conn:
+        row = conn.execute(
+            "SELECT id FROM movie_metadata WHERE movie_title = ?", (movie_title,)
+        ).fetchone()
+
+        params = (
+            match_status,
+            tmdb_id,
+            tmdb_title,
+            genres,
+            overview,
+            release_year,
+            average_rating,
+            runtime_minutes,
+            poster_path,
+            enriched_at.isoformat(),
+        )
+
+        if row is not None:
+            conn.execute(
+                """
+                UPDATE movie_metadata SET
+                    match_status = ?, tmdb_id = ?, tmdb_title = ?, genres = ?,
+                    overview = ?, release_year = ?, average_rating = ?,
+                    runtime_minutes = ?, poster_path = ?, last_enriched_at = ?
+                WHERE movie_title = ?
+                """,
+                params + (movie_title,),
+            )
+            metadata_id = row["id"]
+        else:
+            cursor = conn.execute(
+                """
+                INSERT INTO movie_metadata
+                    (movie_title, match_status, tmdb_id, tmdb_title, genres,
+                     overview, release_year, average_rating, runtime_minutes,
+                     poster_path, last_enriched_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (movie_title,) + params,
+            )
+            metadata_id = cursor.lastrowid
+
+        return MovieMetadata(
+            id=metadata_id,
+            movie_title=movie_title,
+            match_status=match_status,
+            tmdb_id=tmdb_id,
+            tmdb_title=tmdb_title,
+            genres=genres,
+            overview=overview,
+            release_year=release_year,
+            average_rating=average_rating,
+            runtime_minutes=runtime_minutes,
+            poster_path=poster_path,
+            last_enriched_at=enriched_at,
+        )
+
+
+def record_enrichment_attempt(
+    db_path: str,
+    movie_title: str,
+    outcome: str,
+    attempted_at: Optional[datetime] = None,
+    error_message: Optional[str] = None,
+) -> EnrichmentAttempt:
+    attempted_at = attempted_at or datetime.utcnow()
+    with get_connection(db_path) as conn:
+        cursor = conn.execute(
+            """
+            INSERT INTO enrichment_attempt (movie_title, attempted_at, outcome, error_message)
+            VALUES (?, ?, ?, ?)
+            """,
+            (movie_title, attempted_at.isoformat(), outcome, error_message),
+        )
+        return EnrichmentAttempt(
+            id=cursor.lastrowid,
+            movie_title=movie_title,
+            attempted_at=attempted_at,
+            outcome=outcome,
+            error_message=error_message,
         )

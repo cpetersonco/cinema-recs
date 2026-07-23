@@ -2,6 +2,7 @@ import logging
 import sys
 
 from cinema_recs.config import load_config
+from cinema_recs.enrich import run_enrichment
 from cinema_recs.ingest import run_ingestion
 from cinema_recs.logging_setup import configure_logging
 from cinema_recs.scheduler import start_scheduler
@@ -33,15 +34,22 @@ def _log_run(run):
     )
 
 
+def _run_enrichment(config):
+    attempted = run_enrichment(config.db_path, config.tmdb_api_key)
+    logger.info("Enrichment pass finished: titles_attempted=%d", attempted)
+
+
 def main():
     config, cinema = bootstrap()
 
     if len(sys.argv) > 1 and sys.argv[1] == "ingest-once":
         _log_run(run_ingestion(config.db_path, cinema))
+        _run_enrichment(config)
         return
 
     logger.info("Running one-shot ingestion before starting server")
     _log_run(run_ingestion(config.db_path, cinema))
+    _run_enrichment(config)
 
     start_scheduler(config, cinema)
 
