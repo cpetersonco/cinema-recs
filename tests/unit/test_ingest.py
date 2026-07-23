@@ -136,6 +136,7 @@ SCRAPER_NAMES = (
     "scrape_showtimes",
     "scrape_texas_theatre_showtimes",
     "scrape_angelika_dallas_showtimes",
+    "scrape_cinemark_west_plano_showtimes",
 )
 
 
@@ -175,6 +176,12 @@ def test_run_ingestion_dispatches_on_texas_theatre_source_type(db_path, monkeypa
 def test_run_ingestion_dispatches_on_angelika_dallas_source_type(db_path, monkeypatch):
     _assert_dispatches_to(
         db_path, monkeypatch, "angelika_dallas", "scrape_angelika_dallas_showtimes"
+    )
+
+
+def test_run_ingestion_dispatches_on_cinemark_west_plano_source_type(db_path, monkeypatch):
+    _assert_dispatches_to(
+        db_path, monkeypatch, "cinemark_west_plano", "scrape_cinemark_west_plano_showtimes"
     )
 
 

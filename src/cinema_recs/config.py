@@ -14,6 +14,16 @@ ANGELIKA_DALLAS_NAME = "Angelika Film Center Dallas"
 ANGELIKA_DALLAS_LOCATION = "Dallas, TX"
 ANGELIKA_DALLAS_DEFAULT_URL = "https://angelikafilmcenter.com/dallas"
 
+CINEMARK_WEST_PLANO_NAME = "Cinemark West Plano XD and ScreenX"
+CINEMARK_WEST_PLANO_LOCATION = "Plano, TX"
+CINEMARK_WEST_PLANO_DEFAULT_URL = (
+    "https://www.cinemark.com/theatres/tx-plano/cinemark-west-plano-xd-and-screenx"
+)
+# Cinemark's internal theater ID for West Plano — the `theaterId` query param
+# on every `GetByTheaterId` showtimes request and `TicketSeatMap` ticket link
+# (confirmed via live network inspection, spec 012 research.md §1).
+CINEMARK_WEST_PLANO_THEATER_ID = "231"
+
 
 @dataclass(frozen=True)
 class Config:

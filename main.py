@@ -10,6 +10,7 @@ from cinema_recs.recommend import run_recommendation_evaluation
 from cinema_recs.scheduler import start_scheduler
 from cinema_recs.storage import (
     ensure_angelika_dallas_cinema,
+    ensure_cinemark_west_plano_cinema,
     ensure_texas_theatre_cinema,
     get_or_create_cinema,
     init_schema,
@@ -31,7 +32,8 @@ def bootstrap():
     )
     texas_theatre = ensure_texas_theatre_cinema(config.db_path)
     angelika_dallas = ensure_angelika_dallas_cinema(config.db_path)
-    cinemas = [cinepolis, texas_theatre, angelika_dallas]
+    cinemark_west_plano = ensure_cinemark_west_plano_cinema(config.db_path)
+    cinemas = [cinepolis, texas_theatre, angelika_dallas, cinemark_west_plano]
     return config, cinemas
 
 

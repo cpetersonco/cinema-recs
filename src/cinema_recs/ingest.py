@@ -5,6 +5,7 @@ from cinema_recs import storage
 from cinema_recs.models import Cinema, IngestionRun
 from cinema_recs.scraper import (
     scrape_angelika_dallas_showtimes,
+    scrape_cinemark_west_plano_showtimes,
     scrape_showtimes,
     scrape_texas_theatre_showtimes,
 )
@@ -28,6 +29,7 @@ def run_ingestion(db_path: str, cinema: Cinema) -> IngestionRun:
         "cinepolis": scrape_showtimes,
         "texas_theatre": scrape_texas_theatre_showtimes,
         "angelika_dallas": scrape_angelika_dallas_showtimes,
+        "cinemark_west_plano": scrape_cinemark_west_plano_showtimes,
     }
 
     try:

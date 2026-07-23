@@ -274,6 +274,22 @@ def ensure_angelika_dallas_cinema(db_path: str) -> Cinema:
     )
 
 
+def ensure_cinemark_west_plano_cinema(db_path: str) -> Cinema:
+    from cinema_recs.config import (
+        CINEMARK_WEST_PLANO_DEFAULT_URL,
+        CINEMARK_WEST_PLANO_LOCATION,
+        CINEMARK_WEST_PLANO_NAME,
+    )
+
+    return get_or_create_cinema(
+        db_path,
+        name=CINEMARK_WEST_PLANO_NAME,
+        location=CINEMARK_WEST_PLANO_LOCATION,
+        source_url=CINEMARK_WEST_PLANO_DEFAULT_URL,
+        source_type="cinemark_west_plano",
+    )
+
+
 def upsert_showtime(
     db_path: str,
     cinema_id: int,
