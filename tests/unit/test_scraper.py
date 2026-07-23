@@ -1,6 +1,6 @@
-from datetime import date
+from datetime import date, timedelta
 
-from cinema_recs.scraper import looks_blocked, parse_showings_response
+from cinema_recs.scraper import _walk_cinepolis_dates, looks_blocked, parse_showings_response
 
 # Trimmed/representative excerpt of the real `showingsForDate` GraphQL
 # response schema observed against the live Cinepolis McKinney API.
@@ -108,3 +108,81 @@ def test_looks_blocked_detects_cloudflare_interstitial():
 
 def test_looks_blocked_false_for_normal_page():
     assert looks_blocked("<html><body>The Great Adventure - 6:30 PM</body></html>") is False
+
+
+# --- Full showtime window (feature 009): Cinepolis date-loop walking ---
+
+START = date(2026, 7, 23)
+
+
+def _response(entries, count=None):
+    return {"data": entries, "count": count if count is not None else len(entries)}
+
+
+def _entry(movie_title="Toy Story 5", showing_id="1"):
+    return {
+        "id": showing_id,
+        "time": "2026-07-23T15:00:00Z",
+        "screenId": "1005",
+        "movie": {"id": "40256", "name": movie_title},
+    }
+
+
+def test_walk_cinepolis_dates_stops_after_two_consecutive_empty_dates():
+    # today: 1 showing, next day: empty, day after: empty -> stop (complete)
+    responses = {
+        START: _response([_entry()]),
+        START + timedelta(days=1): _response([]),
+        START + timedelta(days=2): _response([]),
+    }
+    queried = []
+
+    def query_date_fn(d):
+        queried.append(d)
+        return responses[d]
+
+    result = _walk_cinepolis_dates(query_date_fn, START)
+
+    assert queried == [START, START + timedelta(days=1), START + timedelta(days=2)]
+    assert len(result.showtimes) == 1
+    assert result.reported_count == 1
+    assert result.complete is True
+    assert result.incomplete_reason is None
+
+
+def test_walk_cinepolis_dates_tolerates_single_empty_date():
+    # A single dark day between two showing days must not stop the walk.
+    responses = {
+        START: _response([_entry("Movie A")]),
+        START + timedelta(days=1): _response([]),
+        START + timedelta(days=2): _response([_entry("Movie B")]),
+        START + timedelta(days=3): _response([]),
+        START + timedelta(days=4): _response([]),
+    }
+
+    def query_date_fn(d):
+        return responses[d]
+
+    result = _walk_cinepolis_dates(query_date_fn, START)
+
+    assert {s.movie_title for s in result.showtimes} == {"Movie A", "Movie B"}
+    assert result.complete is True
+
+
+def test_walk_cinepolis_dates_marks_incomplete_when_a_date_fails():
+    responses = {
+        START: _response([_entry("Movie A")]),
+        START + timedelta(days=1): _response([_entry("Movie B")]),
+    }
+
+    def query_date_fn(d):
+        if d not in responses:
+            raise RuntimeError("GraphQL request failed with HTTP 500")
+        return responses[d]
+
+    result = _walk_cinepolis_dates(query_date_fn, START)
+
+    assert {s.movie_title for s in result.showtimes} == {"Movie A", "Movie B"}
+    assert result.complete is False
+    assert result.incomplete_reason is not None
+    assert (START + timedelta(days=2)).isoformat() in result.incomplete_reason
