@@ -32,7 +32,7 @@ def cinema(config):
 
 @pytest.fixture
 def client(config, cinema):
-    app = create_app(config, cinema)
+    app = create_app(config, [cinema])
     app.testing = True
     return app.test_client()
 

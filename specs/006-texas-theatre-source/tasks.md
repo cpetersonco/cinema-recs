@@ -125,3 +125,10 @@
 2. Complete Phase 3 (User Story 1).
 3. Validate User Story 1 using `tests/unit/test_texas_theatre_scraper.py` and `tests/integration/test_texas_theatre_ingestion.py`.
 4. Deploy MVP for basic showtime capture.
+
+---
+
+## Phase 7: Convergence
+
+- [X] T016 Bootstrap and schedule ingestion, enrichment, recommendation evaluation, and notifications for the Texas Theatre cinema (in addition to the existing Cinepolis McKinney cinema) in `main.py`'s `bootstrap()`/`main()` and `src/cinema_recs/scheduler.py`'s `start_scheduler()` — today only one hardcoded `Cinema` is ever created or scheduled, so `storage.ensure_texas_theatre_cinema()` and the Texas Theatre scraper dispatch in `src/cinema_recs/ingest.py` are never invoked by the running application; also update `src/cinema_recs/web.py`'s listing view to display more than one cinema's showtimes per US1/AC1 (missing)
+- [X] T017 Implement film-screening vs. non-film-event classification or filtering for Texas Theatre calendar entries in `src/cinema_recs/scraper.py`'s `parse_texas_theatre_html()` — it currently stores every parsed calendar block with a title/date/time as a movie showtime with no distinction from live comedy/music/other non-film events per FR-008 (missing)
