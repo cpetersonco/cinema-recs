@@ -3,7 +3,11 @@ from datetime import datetime
 
 from cinema_recs import storage
 from cinema_recs.models import Cinema, IngestionRun
-from cinema_recs.scraper import scrape_showtimes, scrape_texas_theatre_showtimes
+from cinema_recs.scraper import (
+    scrape_angelika_dallas_showtimes,
+    scrape_showtimes,
+    scrape_texas_theatre_showtimes,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -14,6 +18,11 @@ def run_ingestion(db_path: str, cinema: Cinema) -> IngestionRun:
     try:
         if "thetexastheatre.com" in cinema.source_url.lower() or "texas theatre" in cinema.name.lower():
             result = scrape_texas_theatre_showtimes(cinema.source_url)
+        elif (
+            "angelikafilmcenter.com" in cinema.source_url.lower()
+            or "angelika" in cinema.name.lower()
+        ):
+            result = scrape_angelika_dallas_showtimes(cinema.source_url)
         else:
             result = scrape_showtimes(cinema.source_url)
     except Exception as exc:  # noqa: BLE001 - any scrape failure is recorded, not raised
