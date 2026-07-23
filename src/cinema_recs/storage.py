@@ -101,7 +101,9 @@ CREATE TABLE IF NOT EXISTS notification_record (
     movie_title TEXT NOT NULL UNIQUE,
     active INTEGER NOT NULL,
     notified_at TEXT,
-    last_delivery_outcome TEXT
+    last_delivery_outcome TEXT,
+    notified_showtime_id INTEGER REFERENCES showtime(id),
+    disappearance_alerted INTEGER NOT NULL DEFAULT 0
 );
 """
 
@@ -123,6 +125,7 @@ def init_schema(db_path: str) -> None:
     with get_connection(db_path) as conn:
         conn.executescript(SCHEMA)
         _migrate_add_showtime_ticket_url(conn)
+        _migrate_add_notification_disappearance_columns(conn)
 
 
 def _migrate_add_showtime_ticket_url(conn: sqlite3.Connection) -> None:
@@ -132,6 +135,21 @@ def _migrate_add_showtime_ticket_url(conn: sqlite3.Connection) -> None:
     columns = {row["name"] for row in conn.execute("PRAGMA table_info(showtime)")}
     if "ticket_url" not in columns:
         conn.execute("ALTER TABLE showtime ADD COLUMN ticket_url TEXT")
+
+
+def _migrate_add_notification_disappearance_columns(conn: sqlite3.Connection) -> None:
+    """Add notification_record.notified_showtime_id/disappearance_alerted
+    (feature 005 spec, Key Entities) to a database created before these
+    columns existed. A no-op against a fresh database, since
+    CREATE TABLE IF NOT EXISTS above already includes them there."""
+    columns = {row["name"] for row in conn.execute("PRAGMA table_info(notification_record)")}
+    if "notified_showtime_id" not in columns:
+        conn.execute("ALTER TABLE notification_record ADD COLUMN notified_showtime_id INTEGER")
+    if "disappearance_alerted" not in columns:
+        conn.execute(
+            "ALTER TABLE notification_record ADD COLUMN "
+            "disappearance_alerted INTEGER NOT NULL DEFAULT 0"
+        )
 
 
 def get_or_create_cinema(
@@ -651,6 +669,14 @@ def get_next_showtime_for_movie(db_path: str, cinema_id: int, movie_title: str) 
         return _row_to_showtime(row)
 
 
+def get_showtime_by_id(db_path: str, showtime_id: int) -> Optional[Showtime]:
+    with get_connection(db_path) as conn:
+        row = conn.execute("SELECT * FROM showtime WHERE id = ?", (showtime_id,)).fetchone()
+        if row is None:
+            return None
+        return _row_to_showtime(row)
+
+
 def get_notification_record(db_path: str, movie_title: str) -> Optional[NotificationRecord]:
     with get_connection(db_path) as conn:
         row = conn.execute(
@@ -664,6 +690,8 @@ def get_notification_record(db_path: str, movie_title: str) -> Optional[Notifica
             active=bool(row["active"]),
             notified_at=datetime.fromisoformat(row["notified_at"]) if row["notified_at"] else None,
             last_delivery_outcome=row["last_delivery_outcome"],
+            notified_showtime_id=row["notified_showtime_id"],
+            disappearance_alerted=bool(row["disappearance_alerted"]),
         )
 
 
@@ -673,6 +701,8 @@ def upsert_notification_record(
     active: bool,
     notified_at: Optional[datetime] = None,
     last_delivery_outcome: Optional[str] = None,
+    notified_showtime_id: Optional[int] = None,
+    disappearance_alerted: bool = False,
 ) -> NotificationRecord:
     with get_connection(db_path) as conn:
         row = conn.execute(
@@ -683,13 +713,16 @@ def upsert_notification_record(
             int(active),
             notified_at.isoformat() if notified_at else None,
             last_delivery_outcome,
+            notified_showtime_id,
+            int(disappearance_alerted),
         )
 
         if row is not None:
             conn.execute(
                 """
                 UPDATE notification_record SET
-                    active = ?, notified_at = ?, last_delivery_outcome = ?
+                    active = ?, notified_at = ?, last_delivery_outcome = ?,
+                    notified_showtime_id = ?, disappearance_alerted = ?
                 WHERE movie_title = ?
                 """,
                 params + (movie_title,),
@@ -698,8 +731,10 @@ def upsert_notification_record(
         else:
             cursor = conn.execute(
                 """
-                INSERT INTO notification_record (movie_title, active, notified_at, last_delivery_outcome)
-                VALUES (?, ?, ?, ?)
+                INSERT INTO notification_record
+                    (movie_title, active, notified_at, last_delivery_outcome,
+                     notified_showtime_id, disappearance_alerted)
+                VALUES (?, ?, ?, ?, ?, ?)
                 """,
                 (movie_title,) + params,
             )
@@ -711,4 +746,30 @@ def upsert_notification_record(
             active=active,
             notified_at=notified_at,
             last_delivery_outcome=last_delivery_outcome,
+            notified_showtime_id=notified_showtime_id,
+            disappearance_alerted=disappearance_alerted,
         )
+
+
+def list_active_notification_records(db_path: str) -> list[NotificationRecord]:
+    """Notification records currently tracking a referenced showtime for
+    disappearance detection (feature 005 spec FR-001)."""
+    with get_connection(db_path) as conn:
+        rows = conn.execute(
+            """
+            SELECT * FROM notification_record
+            WHERE active = 1 AND notified_showtime_id IS NOT NULL
+            """
+        ).fetchall()
+        return [
+            NotificationRecord(
+                id=row["id"],
+                movie_title=row["movie_title"],
+                active=bool(row["active"]),
+                notified_at=datetime.fromisoformat(row["notified_at"]) if row["notified_at"] else None,
+                last_delivery_outcome=row["last_delivery_outcome"],
+                notified_showtime_id=row["notified_showtime_id"],
+                disappearance_alerted=bool(row["disappearance_alerted"]),
+            )
+            for row in rows
+        ]
