@@ -429,7 +429,7 @@ def fetch_texas_theatre_html(source_url: str, timeout_ms: int = 30_000) -> str:
             with sync_playwright() as p:
                 browser = p.chromium.launch(headless=True)
                 context = browser.new_context(user_agent=REALISTIC_USER_AGENT)
-                Stealth().apply_to(context)
+                Stealth().apply_stealth_sync(context)
                 page = context.new_page()
                 page.goto(source_url, wait_until="domcontentloaded", timeout=timeout_ms)
                 html = page.content()
