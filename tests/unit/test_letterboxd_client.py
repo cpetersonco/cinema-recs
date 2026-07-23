@@ -5,6 +5,7 @@ from curl_cffi.requests.exceptions import ConnectionError as CurlConnectionError
 from curl_cffi.requests.exceptions import HTTPError
 
 from cinema_recs.letterboxd_client import (
+    BUILT_IN_BEST_OF_LISTS,
     fetch_best_of_list_slugs,
     fetch_movie_rating,
     fetch_watchlist_slugs,
@@ -112,6 +113,20 @@ def test_fetch_best_of_list_slugs_scrapes_given_url(mock_get, mock_sleep):
     slugs = fetch_best_of_list_slugs("https://letterboxd.com/ctsearles/list/official-top-250-narrative-feature-films/")
 
     assert slugs == {"the-godfather"}
+
+
+@patch("cinema_recs.letterboxd_client.time.sleep")
+@patch("cinema_recs.letterboxd_client._session.get")
+def test_fetch_best_of_list_slugs_scrapes_onboarded_official_list(mock_get, mock_sleep):
+    """Feature 013: the newly onboarded lists live under letterboxd.com/official/
+    and share the exact poster-grid/pagination markup already parsed above."""
+    html = '<div data-target-link="/film/the-shining/"></div>'
+    mock_get.return_value = _mock_response(status_code=200, text=html)
+
+    slugs = fetch_best_of_list_slugs(BUILT_IN_BEST_OF_LISTS["top_250_horror"].url)
+
+    assert slugs == {"the-shining"}
+    mock_get.assert_called_once_with("https://letterboxd.com/official/list/top-250-horror-films/", timeout=10)
 
 
 @patch("cinema_recs.letterboxd_client.time.sleep")

@@ -8,7 +8,9 @@ an Unraid server.
 Movie titles are also enriched with genre/overview/rating/poster data from
 [TMDB](https://www.themoviedb.org/), cross-referenced against your
 [Letterboxd](https://letterboxd.com/) watchlist, rating preferences, and a
-built-in best-of list to flag recommended showtimes, and — when a showtime
+built-in set of official Letterboxd best-of lists (Top 250, Top 500, and
+genre/category lists like Horror, Animated, and Documentary) to flag
+recommended showtimes, and — when a showtime
 newly becomes recommended — announced via a Discord webhook. If that
 notified showing is later cancelled or rescheduled by the cinema, a
 follow-up Discord alert is sent too, reusing the same webhook

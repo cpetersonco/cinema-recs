@@ -303,6 +303,29 @@ def test_listing_shows_recommended_badge_and_reasons(client, config, cinema):
     assert b"watchlist,rating" in response.data
 
 
+def test_listing_shows_onboarded_list_display_names_in_reasons(client, config, cinema):
+    """Feature 013 US3: recommendation reasons name the specific onboarded
+    Letterboxd list(s) matched, not a raw internal key."""
+    storage.upsert_showtime(
+        config.db_path, cinema.id, "Genre Darling", date(2026, 8, 1), time(18, 30),
+        "Standard", datetime(2026, 8, 1, 10, 0, 0),
+    )
+    storage.upsert_movie_metadata(config.db_path, "Genre Darling", match_status="matched", tmdb_id=7)
+    storage.upsert_movie_recommendation(
+        config.db_path,
+        "Genre Darling",
+        is_recommended=True,
+        reasons="Top 250 Horror Films,Top 250 Animated Films",
+    )
+
+    response = client.get("/")
+
+    assert response.status_code == 200
+    assert b"Top 250 Horror Films" in response.data
+    assert b"Top 250 Animated Films" in response.data
+    assert b"best_of:" not in response.data
+
+
 def test_listing_renders_normally_for_non_recommended_movie(client, config, cinema):
     storage.upsert_showtime(
         config.db_path, cinema.id, "Ordinary Movie", date(2026, 8, 1), time(18, 30),

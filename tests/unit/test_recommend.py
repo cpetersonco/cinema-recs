@@ -4,7 +4,8 @@ import pytest
 
 from cinema_recs import storage
 from cinema_recs.config import Config
-from cinema_recs.recommend import run_recommendation_evaluation
+from cinema_recs.letterboxd_client import BUILT_IN_BEST_OF_LISTS
+from cinema_recs.recommend import _refresh_reference_lists, run_recommendation_evaluation
 
 
 @pytest.fixture
@@ -30,6 +31,21 @@ def _config(tmp_path, username=None, threshold=None):
 
 def _seed_matched_movie(db_path, title, tmdb_id=42):
     storage.upsert_movie_metadata(db_path, title, match_status="matched", tmdb_id=tmdb_id)
+
+
+def _lists_side_effect(matches: dict):
+    """Build a fetch_best_of_list_slugs side_effect returning per-list slug
+    sets keyed by list_key (looked up by URL, since _refresh_reference_lists
+    calls the mock once per BUILT_IN_BEST_OF_LISTS entry with that entry's
+    URL). Lists not in `matches` return an empty set."""
+
+    def _fake(url):
+        for list_key, slugs in matches.items():
+            if url == BUILT_IN_BEST_OF_LISTS[list_key].url:
+                return slugs
+        return set()
+
+    return _fake
 
 
 @patch("cinema_recs.recommend.fetch_best_of_list_slugs")
@@ -119,7 +135,77 @@ def test_movie_on_best_of_list_is_recommended(mock_resolve, mock_watchlist, mock
 
     rec = storage.get_movie_recommendation(db_path, "Classic Film")
     assert rec.is_recommended is True
-    assert "best_of:official_top_250" in rec.reasons
+    assert "Official Top 250 Narrative Feature Films" in rec.reasons
+
+
+@patch("cinema_recs.recommend.fetch_best_of_list_slugs")
+@patch("cinema_recs.recommend.fetch_watchlist_slugs")
+@patch("cinema_recs.recommend.resolve_letterboxd_slug")
+def test_movie_on_onboarded_list_only_is_recommended_with_its_display_name(
+    mock_resolve, mock_watchlist, mock_lists, db_path, tmp_path
+):
+    """Feature 013 US1 acceptance scenario 1: a movie on a newly onboarded
+    list (and no other criterion) is recommended, with that list's name in
+    reasons."""
+    _seed_matched_movie(db_path, "Horror Classic")
+    mock_resolve.return_value = "horror-classic"
+    mock_watchlist.return_value = set()
+    mock_lists.side_effect = _lists_side_effect({"top_250_horror": {"horror-classic"}})
+    config = _config(tmp_path, username="operator")
+
+    with patch("cinema_recs.recommend.fetch_movie_rating", return_value=None):
+        run_recommendation_evaluation(db_path, config)
+
+    rec = storage.get_movie_recommendation(db_path, "Horror Classic")
+    assert rec.is_recommended is True
+    assert rec.reasons == "Top 250 Horror Films"
+
+
+@patch("cinema_recs.recommend.fetch_best_of_list_slugs")
+@patch("cinema_recs.recommend.fetch_watchlist_slugs")
+@patch("cinema_recs.recommend.resolve_letterboxd_slug")
+def test_movie_on_multiple_onboarded_lists_has_every_list_in_reasons(
+    mock_resolve, mock_watchlist, mock_lists, db_path, tmp_path
+):
+    """Feature 013 US1 acceptance scenario 2: a movie on more than one
+    onboarded list has every matching list named in reasons."""
+    _seed_matched_movie(db_path, "Beloved Animated Classic")
+    mock_resolve.return_value = "beloved-animated-classic"
+    mock_watchlist.return_value = set()
+    mock_lists.side_effect = _lists_side_effect(
+        {
+            "official_top_250": {"beloved-animated-classic"},
+            "top_250_animated": {"beloved-animated-classic"},
+        }
+    )
+    config = _config(tmp_path, username="operator")
+
+    with patch("cinema_recs.recommend.fetch_movie_rating", return_value=None):
+        run_recommendation_evaluation(db_path, config)
+
+    rec = storage.get_movie_recommendation(db_path, "Beloved Animated Classic")
+    assert rec.is_recommended is True
+    assert "Official Top 250 Narrative Feature Films" in rec.reasons
+    assert "Top 250 Animated Films" in rec.reasons
+
+
+@patch("cinema_recs.recommend.fetch_best_of_list_slugs")
+@patch("cinema_recs.recommend.fetch_watchlist_slugs")
+@patch("cinema_recs.recommend.resolve_letterboxd_slug")
+def test_movie_on_no_onboarded_list_is_not_recommended(mock_resolve, mock_watchlist, mock_lists, db_path, tmp_path):
+    """Feature 013 US1 acceptance scenario 3."""
+    _seed_matched_movie(db_path, "Unranked Movie")
+    mock_resolve.return_value = "unranked-movie"
+    mock_watchlist.return_value = set()
+    mock_lists.return_value = set()
+    config = _config(tmp_path, username="operator")
+
+    with patch("cinema_recs.recommend.fetch_movie_rating", return_value=None):
+        run_recommendation_evaluation(db_path, config)
+
+    rec = storage.get_movie_recommendation(db_path, "Unranked Movie")
+    assert rec.is_recommended is False
+    assert rec.reasons is None
 
 
 @patch("cinema_recs.recommend.fetch_best_of_list_slugs")
@@ -169,6 +255,48 @@ def test_failed_watchlist_refresh_keeps_stale_cache(mock_watchlist, mock_lists, 
     rec = storage.get_movie_recommendation(db_path, "Watchlisted Movie")
     assert rec.is_recommended is True
     assert rec.reasons == "watchlist"
+
+
+@patch("cinema_recs.recommend.fetch_best_of_list_slugs")
+def test_one_onboarded_list_failure_does_not_affect_other_lists(mock_lists, db_path, tmp_path):
+    """Feature 013 US2: a fetch failure against one onboarded list's page
+    keeps that list's previously cached membership untouched and does not
+    block the other onboarded lists from refreshing in the same cycle."""
+    storage.replace_reference_list_slugs(db_path, "best_of:top_250_horror", {"stale-horror-film"})
+    storage.replace_reference_list_slugs(db_path, "best_of:top_250_animated", {"stale-animated-film"})
+
+    def _fake(url):
+        if url == BUILT_IN_BEST_OF_LISTS["top_250_horror"].url:
+            raise Exception("network error")
+        if url == BUILT_IN_BEST_OF_LISTS["top_250_animated"].url:
+            return {"fresh-animated-film"}
+        return set()
+
+    mock_lists.side_effect = _fake
+    config = _config(tmp_path)
+
+    _refresh_reference_lists(db_path, config)
+
+    assert storage.get_reference_list_slugs(db_path, "best_of:top_250_horror") == {"stale-horror-film"}
+    assert storage.get_reference_list_slugs(db_path, "best_of:top_250_animated") == {"fresh-animated-film"}
+
+
+@patch("cinema_recs.recommend.fetch_best_of_list_slugs")
+def test_one_onboarded_list_failure_logs_only_for_that_list(mock_lists, db_path, tmp_path, caplog):
+    def _fake(url):
+        if url == BUILT_IN_BEST_OF_LISTS["top_250_horror"].url:
+            raise Exception("network error")
+        return set()
+
+    mock_lists.side_effect = _fake
+    config = _config(tmp_path)
+
+    with caplog.at_level("ERROR", logger="cinema_recs.recommend"):
+        _refresh_reference_lists(db_path, config)
+
+    failure_messages = [r.getMessage() for r in caplog.records]
+    assert any("top_250_horror" in msg for msg in failure_messages)
+    assert not any("top_250_animated" in msg for msg in failure_messages)
 
 
 @patch("cinema_recs.recommend.fetch_best_of_list_slugs")

@@ -101,5 +101,6 @@
   "99": "init_schema",
   "100": "Cinema",
   "101": "_ensure_letterboxd_data_cached",
-  "102": "1. Calendar Page Source & Parsing Method"
+  "102": "1. Calendar Page Source & Parsing Method",
+  "103": "upsert_showtime"
 }

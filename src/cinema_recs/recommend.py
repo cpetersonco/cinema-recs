@@ -22,9 +22,9 @@ def _refresh_reference_lists(db_path: str, config: Config) -> None:
         except Exception:  # noqa: BLE001 - keep the previously cached watchlist, don't treat as empty
             logger.exception("Failed to refresh Letterboxd watchlist; keeping previously cached data")
 
-    for list_key, list_url in BUILT_IN_BEST_OF_LISTS.items():
+    for list_key, best_of_list in BUILT_IN_BEST_OF_LISTS.items():
         try:
-            slugs = fetch_best_of_list_slugs(list_url)
+            slugs = fetch_best_of_list_slugs(best_of_list.url)
             storage.replace_reference_list_slugs(db_path, f"best_of:{list_key}", slugs)
             logger.info("Refreshed best-of list %r cache: %d film(s)", list_key, len(slugs))
         except Exception:  # noqa: BLE001 - keep the previously cached list, don't treat as empty
@@ -95,7 +95,7 @@ def run_recommendation_evaluation(db_path: str, config: Config) -> int:
             reasons.append("rating")
         for list_key, slugs in best_of_slug_sets.items():
             if lb_data.letterboxd_slug in slugs:
-                reasons.append(f"best_of:{list_key}")
+                reasons.append(BUILT_IN_BEST_OF_LISTS[list_key].display_name)
 
         storage.upsert_movie_recommendation(
             db_path,

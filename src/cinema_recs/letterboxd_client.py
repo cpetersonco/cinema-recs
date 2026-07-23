@@ -2,6 +2,7 @@ import json
 import logging
 import re
 import time
+from dataclasses import dataclass
 from typing import Optional
 
 from curl_cffi import requests
@@ -13,11 +14,63 @@ BASE_URL = "https://letterboxd.com"
 REQUEST_PACING_SECONDS = 0.25
 MAX_RETRIES = 2
 
-# Community-maintained clone of Letterboxd's own official ratings-based
-# ranking under this exact name (research.md: Letterboxd's own "official"
-# curator account hosts a different set of editorial lists, not this one).
-BUILT_IN_BEST_OF_LISTS = {
-    "official_top_250": f"{BASE_URL}/ctsearles/list/official-top-250-narrative-feature-films/",
+
+@dataclass(frozen=True)
+class BestOfList:
+    """A built-in Letterboxd list checked as a recommendation criterion.
+
+    `display_name` is shown verbatim to the operator (web view, Discord
+    notifications) wherever a matched recommendation reason is surfaced.
+    """
+
+    display_name: str
+    url: str
+
+
+BUILT_IN_BEST_OF_LISTS: dict[str, BestOfList] = {
+    # Community-maintained clone of Letterboxd's own official ratings-based
+    # ranking under this exact name (research.md: Letterboxd's own "official"
+    # curator account hosts a different set of editorial lists, not this one).
+    "official_top_250": BestOfList(
+        display_name="Official Top 250 Narrative Feature Films",
+        url=f"{BASE_URL}/ctsearles/list/official-top-250-narrative-feature-films/",
+    ),
+    # The remaining lists are hosted directly under Letterboxd's own
+    # letterboxd.com/official/ curator account (feature 013 research.md:
+    # live-verified 200s with the same data-target-link/pagination markup
+    # this module already parses).
+    "top_500": BestOfList(
+        display_name="Letterboxd's Top 500 Films",
+        url=f"{BASE_URL}/official/list/letterboxds-top-500-films/",
+    ),
+    "most_fans": BestOfList(
+        display_name="Top 250 Films with the Most Fans",
+        url=f"{BASE_URL}/official/list/top-250-films-with-the-most-fans/",
+    ),
+    "top_250_animated": BestOfList(
+        display_name="Top 250 Animated Films",
+        url=f"{BASE_URL}/official/list/top-250-animated-films/",
+    ),
+    "top_250_horror": BestOfList(
+        display_name="Top 250 Horror Films",
+        url=f"{BASE_URL}/official/list/top-250-horror-films/",
+    ),
+    "top_250_documentary": BestOfList(
+        display_name="Top 250 Documentary Films",
+        url=f"{BASE_URL}/official/list/top-250-documentary-films/",
+    ),
+    "top_250_women_directors": BestOfList(
+        display_name="Top 250 Films by Women Directors",
+        url=f"{BASE_URL}/official/list/top-250-films-by-women-directors/",
+    ),
+    "top_250_black_directors": BestOfList(
+        display_name="Top 250 Films by Black Directors",
+        url=f"{BASE_URL}/official/list/top-250-films-by-black-directors/",
+    ),
+    "top_100_underseen": BestOfList(
+        display_name="Top 100 Underseen Films",
+        url=f"{BASE_URL}/official/list/top-100-underseen-films/",
+    ),
 }
 
 _FILM_SLUG_RE = re.compile(r"/film/([^/]+)/")
