@@ -2,8 +2,8 @@ import json
 import logging
 import re
 import time as time_module
-from datetime import date, datetime, time
-from typing import Any, NamedTuple
+from datetime import date, datetime, time, timedelta
+from typing import Any, Callable, NamedTuple
 from urllib.parse import urljoin
 from zoneinfo import ZoneInfo
 
@@ -17,6 +17,14 @@ logger = logging.getLogger(__name__)
 
 MAX_FETCH_ATTEMPTS = 3
 RETRY_BACKOFF_SECONDS = 5
+
+# How many consecutive empty periods (dates for Cinepolis, months for Texas
+# Theatre) to see before concluding a source's published calendar has ended,
+# rather than stopping on the first empty one — Texas Theatre's real
+# calendar was observed to taper non-monotonically (research.md §2: a
+# 4-listing month followed by a 5-listing month), so a single empty period
+# is not a safe stop condition on its own.
+MAX_CONSECUTIVE_EMPTY_PERIODS = 2
 
 REALISTIC_USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
@@ -87,6 +95,17 @@ class ScrapeResult(NamedTuple):
     # than genuinely absent from the source, distinguishing a "partial"
     # ingestion run from a clean "success".
     reported_count: int
+    # Whether the fetch walked all the way to the source's own end of its
+    # published calendar (per-source stop condition) before returning,
+    # vs. stopping early because a request failed after exhausting
+    # retries. `run_ingestion` must only mark previously-active showtimes
+    # stale when this is True — otherwise a showtime that simply wasn't
+    # reached yet would be wrongly treated as no longer published.
+    complete: bool = True
+    # Set when complete=False: identifies which page/date/month the walk
+    # was on when it gave up, so the recorded IngestionRun.error_message
+    # is actionable from container logs alone (Constitution V).
+    incomplete_reason: str | None = None
 
 
 class BlockedError(RuntimeError):
@@ -98,11 +117,79 @@ def looks_blocked(html: str) -> bool:
     return any(marker in html for marker in BLOCK_PAGE_MARKERS)
 
 
+def _query_showings_for_date_json(page: Any, show_date: date) -> dict[str, Any]:
+    """Run one `showingsForDate` GraphQL query from within an already-loaded,
+    already-authorized Cinepolis page's own JS context (see
+    `scrape_showtimes` for why it must be `page.evaluate`, not a separate
+    HTTP client). No retry/browser-launch here — callers reusing one page
+    across many dates handle retries per date via
+    `_query_showings_for_date_with_retry`."""
+    result = page.evaluate(
+        """
+        async ({ query, variables, siteId, circuitId }) => {
+            const resp = await fetch('/graphql', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'site-id': siteId,
+                    'circuit-id': circuitId,
+                    'client-type': 'consumer',
+                    'is-electron-mode': 'false',
+                },
+                body: JSON.stringify({ query, variables }),
+            });
+            const text = await resp.text();
+            return { status: resp.status, text };
+        }
+        """,
+        {
+            "query": SHOWINGS_FOR_DATE_QUERY,
+            "variables": {
+                "date": show_date.isoformat(),
+                "siteIds": [MCKINNEY_SITE_ID],
+            },
+            "siteId": MCKINNEY_SITE_ID,
+            "circuitId": CINEPOLIS_CIRCUIT_ID,
+        },
+    )
+
+    if result["status"] != 200:
+        raise RuntimeError(f"GraphQL request failed with HTTP {result['status']}")
+
+    payload = json.loads(result["text"])
+    if payload.get("errors"):
+        raise RuntimeError(f"GraphQL request returned errors: {payload['errors']}")
+
+    return payload["data"]["showingsForDate"]
+
+
+def _query_showings_for_date_with_retry(page: Any, show_date: date) -> dict[str, Any]:
+    """Transient failures (timeouts, block pages mid-session) are retried a
+    few times with a short backoff before giving up on this one date."""
+    last_error: Exception | None = None
+    for attempt in range(1, MAX_FETCH_ATTEMPTS + 1):
+        try:
+            if looks_blocked(page.content()):
+                raise BlockedError("Source appears to have served a block/challenge page")
+            return _query_showings_for_date_json(page, show_date)
+        except (PlaywrightError, BlockedError, RuntimeError, json.JSONDecodeError) as exc:
+            last_error = exc
+            logger.warning(
+                "Fetch attempt %d/%d failed for %s: %s",
+                attempt, MAX_FETCH_ATTEMPTS, show_date.isoformat(), exc,
+            )
+            if attempt < MAX_FETCH_ATTEMPTS:
+                time_module.sleep(RETRY_BACKOFF_SECONDS)
+
+    assert last_error is not None
+    raise last_error
+
+
 def fetch_showings_json(
     source_url: str, show_date: date, timeout_ms: int = 30_000
 ) -> dict[str, Any]:
-    """Fetch raw showtime data for the given date from Cinepolis' GraphQL
-    API.
+    """Fetch raw showtime data for a single date from Cinepolis' GraphQL
+    API, launching a fresh browser/page for just this one date.
 
     A real headless browser (with stealth evasions + a realistic
     user-agent) is required just to load `source_url` once, because
@@ -119,8 +206,10 @@ def fetch_showings_json(
     doesn't carry the real browser's TLS/JS fingerprint - only a `fetch()`
     executed by the already-loaded page does.
 
-    Transient failures (timeouts, navigation errors, detected block
-    pages) are retried a few times with a short backoff before giving up.
+    Kept as a standalone single-date helper (used internally by
+    `scrape_showtimes` for its first date, and available for one-off
+    lookups); fetching multiple dates in one run reuses one browser/page
+    instead of calling this repeatedly — see `scrape_showtimes`.
     """
     last_error: Exception | None = None
     for attempt in range(1, MAX_FETCH_ATTEMPTS + 1):
@@ -139,45 +228,9 @@ def fetch_showings_json(
                             f"Source appears to have served a block/challenge page: {source_url}"
                         )
 
-                    result = page.evaluate(
-                        """
-                        async ({ query, variables, siteId, circuitId }) => {
-                            const resp = await fetch('/graphql', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'site-id': siteId,
-                                    'circuit-id': circuitId,
-                                    'client-type': 'consumer',
-                                    'is-electron-mode': 'false',
-                                },
-                                body: JSON.stringify({ query, variables }),
-                            });
-                            const text = await resp.text();
-                            return { status: resp.status, text };
-                        }
-                        """,
-                        {
-                            "query": SHOWINGS_FOR_DATE_QUERY,
-                            "variables": {
-                                "date": show_date.isoformat(),
-                                "siteIds": [MCKINNEY_SITE_ID],
-                            },
-                            "siteId": MCKINNEY_SITE_ID,
-                            "circuitId": CINEPOLIS_CIRCUIT_ID,
-                        },
-                    )
+                    return _query_showings_for_date_json(page, show_date)
                 finally:
                     browser.close()
-
-            if result["status"] != 200:
-                raise RuntimeError(f"GraphQL request failed with HTTP {result['status']}")
-
-            payload = json.loads(result["text"])
-            if payload.get("errors"):
-                raise RuntimeError(f"GraphQL request returned errors: {payload['errors']}")
-
-            return payload["data"]["showingsForDate"]
         except (PlaywrightError, BlockedError, RuntimeError, json.JSONDecodeError) as exc:
             last_error = exc
             logger.warning(
@@ -235,12 +288,95 @@ def parse_showings_response(showings_response: dict[str, Any]) -> list[ScrapedSh
     return showtimes
 
 
-def scrape_showtimes(source_url: str, show_date: date | None = None) -> ScrapeResult:
-    show_date = show_date or datetime.now(tz=CENTRAL_TIME).date()
-    showings_response = fetch_showings_json(source_url, show_date)
-    showtimes = parse_showings_response(showings_response)
-    reported_count = showings_response.get("count", len(showtimes))
-    return ScrapeResult(showtimes=showtimes, reported_count=reported_count)
+def _walk_cinepolis_dates(
+    query_date_fn: Callable[[date], dict[str, Any]],
+    start_date: date,
+    max_consecutive_empty: int = MAX_CONSECUTIVE_EMPTY_PERIODS,
+) -> ScrapeResult:
+    """Walk forward one date at a time from `start_date`, calling
+    `query_date_fn(d)` for each (already retried internally — see
+    `_query_showings_for_date_with_retry`), until `max_consecutive_empty`
+    consecutive dates report zero showings (research.md §1) or a query
+    raises after exhausting its own retries.
+
+    Pure walking/stop-condition logic, independent of Playwright, so it
+    can be unit tested with a fake `query_date_fn`.
+    """
+    showtimes: list[ScrapedShowtime] = []
+    reported_count = 0
+    consecutive_empty = 0
+    current_date = start_date
+    complete = False
+    incomplete_reason: str | None = None
+
+    while True:
+        try:
+            showings_response = query_date_fn(current_date)
+        except Exception as exc:  # noqa: BLE001 - any per-date failure ends the walk, not the run
+            incomplete_reason = f"failed fetching {current_date.isoformat()}: {exc}"
+            break
+
+        day_showtimes = parse_showings_response(showings_response)
+        day_count = showings_response.get("count", len(day_showtimes))
+        reported_count += day_count
+        showtimes.extend(day_showtimes)
+
+        if day_count == 0:
+            consecutive_empty += 1
+            if consecutive_empty >= max_consecutive_empty:
+                complete = True
+                break
+        else:
+            consecutive_empty = 0
+
+        current_date += timedelta(days=1)
+
+    return ScrapeResult(
+        showtimes=showtimes,
+        reported_count=reported_count,
+        complete=complete,
+        incomplete_reason=incomplete_reason,
+    )
+
+
+def scrape_showtimes(source_url: str, start_date: date | None = None) -> ScrapeResult:
+    """Fetch every showtime Cinepolis currently has published, starting
+    from `start_date` (defaults to today).
+
+    One browser/page is launched and authorized against Cloudflare once
+    for the whole run, then reused for one `page.evaluate` GraphQL call
+    per date (research.md §1) — relaunching a browser per date would
+    multiply both run time and Cloudflare-challenge exposure roughly
+    linearly with the number of dates fetched.
+    """
+    start_date = start_date or datetime.now(tz=CENTRAL_TIME).date()
+    logger.info("Starting Cinepolis showtime scrape for %s from %s", source_url, start_date)
+
+    with Stealth().use_sync(sync_playwright()) as playwright:
+        browser = playwright.chromium.launch()
+        try:
+            page = browser.new_page(
+                user_agent=REALISTIC_USER_AGENT,
+                viewport={"width": 1920, "height": 1080},
+            )
+            page.goto(source_url, timeout=30_000, wait_until="networkidle")
+
+            if looks_blocked(page.content()):
+                raise BlockedError(
+                    f"Source appears to have served a block/challenge page: {source_url}"
+                )
+
+            result = _walk_cinepolis_dates(
+                lambda d: _query_showings_for_date_with_retry(page, d), start_date
+            )
+        finally:
+            browser.close()
+
+    logger.info(
+        "Cinepolis scrape complete: %d showtime(s) parsed out of %d reported (complete=%s)",
+        len(result.showtimes), result.reported_count, result.complete,
+    )
+    return result
 
 
 # --- Texas Theatre Showtime Source Scraper ---
@@ -410,27 +546,23 @@ def parse_texas_theatre_html(
     return showtimes, reported_count
 
 
-def fetch_texas_theatre_html(source_url: str, timeout_ms: int = 30_000) -> str:
+def _fetch_page_html_with_retry(page: Any, url: str, timeout_ms: int = 30_000) -> str:
+    """Fetch one calendar page's HTML from an already-open Playwright
+    `page`/context, retrying transient failures a few times with a short
+    backoff before giving up on this one page."""
     last_error: Exception | None = None
     for attempt in range(1, MAX_FETCH_ATTEMPTS + 1):
         try:
-            with sync_playwright() as p:
-                browser = p.chromium.launch(headless=True)
-                context = browser.new_context(user_agent=REALISTIC_USER_AGENT)
-                Stealth().apply_stealth_sync(context)
-                page = context.new_page()
-                page.goto(source_url, wait_until="domcontentloaded", timeout=timeout_ms)
-                html = page.content()
-                browser.close()
-
-                if looks_blocked(html):
-                    raise BlockedError(f"Blocked by bot protection for {source_url}")
-                return html
+            page.goto(url, wait_until="domcontentloaded", timeout=timeout_ms)
+            html = page.content()
+            if looks_blocked(html):
+                raise BlockedError(f"Blocked by bot protection for {url}")
+            return html
         except (PlaywrightError, BlockedError, RuntimeError) as exc:
             last_error = exc
             logger.warning(
                 "Fetch attempt %d/%d failed for %s: %s",
-                attempt, MAX_FETCH_ATTEMPTS, source_url, exc,
+                attempt, MAX_FETCH_ATTEMPTS, url, exc,
             )
             if attempt < MAX_FETCH_ATTEMPTS:
                 time_module.sleep(RETRY_BACKOFF_SECONDS)
@@ -439,17 +571,129 @@ def fetch_texas_theatre_html(source_url: str, timeout_ms: int = 30_000) -> str:
     raise last_error
 
 
+def fetch_texas_theatre_html(source_url: str, timeout_ms: int = 30_000) -> str:
+    """Fetch a single calendar page's HTML, launching its own browser/
+    context. Kept as a standalone single-page helper (available for
+    one-off lookups); fetching a source's full calendar reuses one
+    browser/context across months instead of calling this repeatedly —
+    see `scrape_texas_theatre_showtimes`."""
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        try:
+            context = browser.new_context(user_agent=REALISTIC_USER_AGENT)
+            Stealth().apply_stealth_sync(context)
+            page = context.new_page()
+            return _fetch_page_html_with_retry(page, source_url, timeout_ms)
+        finally:
+            browser.close()
+
+
+def extract_next_month_url(html: str, base_url: str) -> str | None:
+    """The calendar page's own "next month" link — `a.calendar-next`,
+    confirmed live against thetexastheatre.com/calendar (research.md §2)
+    — is authoritative for "what comes after this month," rather than
+    guessing at a `/calendar/<month>/<year>` URL scheme by hand."""
+    soup = BeautifulSoup(html, "html.parser")
+    next_link = soup.select_one("a.calendar-next")
+    if next_link is None:
+        return None
+    href = (next_link.get("href") or "").strip()
+    return urljoin(base_url, href) if href else None
+
+
+def _walk_texas_theatre_months(
+    fetch_page_fn: Callable[[str], str],
+    start_url: str,
+    base_url: str,
+    max_consecutive_empty: int = MAX_CONSECUTIVE_EMPTY_PERIODS,
+) -> ScrapeResult:
+    """Walk forward one calendar month page at a time from `start_url`,
+    following each page's own "next month" link, until
+    `max_consecutive_empty` consecutive months report zero listings
+    (research.md §2 — a single empty month is not a safe stop condition,
+    since real listing counts taper non-monotonically) or a page fetch
+    raises after exhausting its own retries, or the site stops providing
+    a "next month" link at all.
+
+    Pure walking/stop-condition logic, independent of Playwright, so it
+    can be unit tested with a fake `fetch_page_fn`.
+    """
+    showtimes: list[ScrapedShowtime] = []
+    reported_count = 0
+    consecutive_empty = 0
+    current_url = start_url
+    visited: set[str] = set()
+    complete = False
+    incomplete_reason: str | None = None
+
+    while True:
+        if current_url in visited:
+            # Defensive guard against a "next month" link cycle; the site
+            # has always advanced forward in practice (research.md §2).
+            complete = True
+            break
+        visited.add(current_url)
+
+        try:
+            html = fetch_page_fn(current_url)
+        except Exception as exc:  # noqa: BLE001 - any per-page failure ends the walk, not the run
+            incomplete_reason = f"failed fetching {current_url}: {exc}"
+            break
+
+        month_showtimes, month_count = parse_texas_theatre_html(html, base_url=base_url)
+        showtimes.extend(month_showtimes)
+        reported_count += month_count
+
+        if month_count == 0:
+            consecutive_empty += 1
+            if consecutive_empty >= max_consecutive_empty:
+                complete = True
+                break
+        else:
+            consecutive_empty = 0
+
+        next_url = extract_next_month_url(html, base_url)
+        if next_url is None:
+            complete = True
+            break
+        current_url = next_url
+
+    return ScrapeResult(
+        showtimes=showtimes,
+        reported_count=reported_count,
+        complete=complete,
+        incomplete_reason=incomplete_reason,
+    )
+
+
 def scrape_texas_theatre_showtimes(
     source_url: str = "https://thetexastheatre.com/calendar"
 ) -> ScrapeResult:
+    """Fetch every showtime Texas Theatre currently has published,
+    starting from the current month's calendar page and walking forward
+    (research.md §2). One browser/context/page is reused across all
+    months fetched in this run."""
     logger.info("Starting Texas Theatre showtime scrape for %s", source_url)
-    html = fetch_texas_theatre_html(source_url)
-    showtimes, reported_count = parse_texas_theatre_html(html, base_url=source_url)
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        try:
+            context = browser.new_context(user_agent=REALISTIC_USER_AGENT)
+            Stealth().apply_stealth_sync(context)
+            page = context.new_page()
+            result = _walk_texas_theatre_months(
+                lambda url: _fetch_page_html_with_retry(page, url),
+                source_url,
+                base_url=source_url,
+            )
+        finally:
+            browser.close()
+
     logger.info(
-        "Texas Theatre scrape complete: %d showtime(s) parsed out of %d reported events",
-        len(showtimes), reported_count,
+        "Texas Theatre scrape complete: %d showtime(s) parsed out of %d reported events "
+        "across the walked calendar (complete=%s)",
+        len(result.showtimes), result.reported_count, result.complete,
     )
-    return ScrapeResult(showtimes=showtimes, reported_count=reported_count)
+    return result
 
 
 # --- Angelika Film Center Dallas Showtime Source Scraper ---
@@ -466,7 +710,20 @@ def scrape_texas_theatre_showtimes(
 # is unaffected by the page-script CORS restrictions that blocked a replayed request.
 # cinemaId, endpoint, and response shape below were confirmed by inspecting live
 # network traffic against https://angelikafilmcenter.com/dallas (see research.md §1).
+#
+# The `/films` response is per-date, not full-window — live capture (research.md
+# §3, superseding an earlier incorrect assumption) confirmed the request always
+# carries a `selectedDate` query param, and clicking a different date on the
+# "now playing" page's own date-selector strip re-issues the request with that
+# date. The strip itself (`div#anytime > span`, one per selectable date) is the
+# site's own authoritative, already-computed list of every date it currently has
+# showtimes for — walking exactly those dates (one click + capture per date,
+# after the first, which the initial page load already captures) gives the full
+# published window with no guessing at a stop condition.
 ANGELIKA_DALLAS_CINEMA_ID = "0000000009"
+
+_ANGELIKA_DATE_STRIP_SELECTOR = "#anytime span"
+_ANGELIKA_DATE_LABEL_RE = re.compile(r"(\d{1,2})/(\d{1,2})$")
 
 # Confirmed via the site's own client-side router (route pattern
 # "/cinemas/:cinemaId/sessions/:sessionId/:movieId"); the films API response includes
@@ -545,6 +802,123 @@ def fetch_angelika_dallas_films(
     raise last_error
 
 
+def _parse_angelika_date_strip_label(label: str, today: date) -> date | None:
+    """Labels are like "Today, 7/23", "Tomorrow, 7/24", "Sunday 7/26" —
+    always month/day with no year. The strip only ever runs forward from
+    today, so a month/day earlier in the calendar than today belongs to
+    next year."""
+    match = _ANGELIKA_DATE_LABEL_RE.search(label)
+    if not match:
+        return None
+    month, day = int(match.group(1)), int(match.group(2))
+    try:
+        candidate = date(today.year, month, day)
+    except ValueError:
+        return None
+    if candidate < today:
+        try:
+            candidate = date(today.year + 1, month, day)
+        except ValueError:
+            return None
+    return candidate
+
+
+def _extract_angelika_labeled_dates(page: Any, today: date) -> list[tuple[str, date]]:
+    """Read the "now playing" date-selector strip's own declared list of
+    bookable dates straight from the DOM (research.md §3) — the site's
+    own already-computed full booking horizon for currently-open movies,
+    rather than a guessed stop condition or URL pagination scheme."""
+    labels = page.eval_on_selector_all(
+        _ANGELIKA_DATE_STRIP_SELECTOR, "nodes => nodes.map(n => n.textContent.trim())"
+    )
+    labeled_dates = []
+    for label in labels:
+        parsed = _parse_angelika_date_strip_label(label, today)
+        if parsed is not None:
+            labeled_dates.append((label, parsed))
+    return labeled_dates
+
+
+def _click_angelika_date_with_retry(
+    page: Any, label: str, timeout_ms: int = 30_000
+) -> dict[str, Any]:
+    """Click one date-strip button and capture the `/films` response it
+    triggers, retrying transient failures a few times with a short
+    backoff before giving up on this one date."""
+    last_error: Exception | None = None
+    for attempt in range(1, MAX_FETCH_ATTEMPTS + 1):
+        try:
+            with page.expect_response(
+                lambda response: "/films" in response.url
+                and f"cinemaId={ANGELIKA_DALLAS_CINEMA_ID}" in response.url,
+                timeout=timeout_ms,
+            ) as response_info:
+                page.get_by_text(label, exact=True).first.click(timeout=timeout_ms)
+            response = response_info.value
+            if response.status != 200:
+                raise RuntimeError(
+                    f"Angelika Dallas films request failed with HTTP {response.status} "
+                    f"for date {label!r}"
+                )
+            return response.json()
+        except (PlaywrightError, PlaywrightTimeoutError, RuntimeError) as exc:
+            last_error = exc
+            logger.warning(
+                "Fetch attempt %d/%d failed for date %s: %s",
+                attempt, MAX_FETCH_ATTEMPTS, label, exc,
+            )
+            if attempt < MAX_FETCH_ATTEMPTS:
+                time_module.sleep(RETRY_BACKOFF_SECONDS)
+
+    assert last_error is not None
+    raise last_error
+
+
+def _walk_angelika_dallas_dates(
+    labeled_dates: list[tuple[str, date]],
+    initial_payload: dict[str, Any],
+    query_label_fn: Callable[[str], dict[str, Any]],
+) -> ScrapeResult:
+    """Fold the already-captured initial page load's payload (covering
+    `labeled_dates[0]`, "today") together with one `query_label_fn(label)`
+    call per remaining labeled date (each already retried internally),
+    stopping early if a date's fetch raises after exhausting its own
+    retries. Complete only when every labeled date was fetched.
+
+    Pure walking logic, independent of Playwright, so it can be unit
+    tested with a fake `query_label_fn`.
+    """
+    if not labeled_dates:
+        return ScrapeResult(showtimes=[], reported_count=0, complete=True)
+
+    payloads = [initial_payload]
+    complete = False
+    incomplete_reason: str | None = None
+
+    for label, _ in labeled_dates[1:]:
+        try:
+            payloads.append(query_label_fn(label))
+        except Exception as exc:  # noqa: BLE001 - any per-date failure ends the walk, not the run
+            incomplete_reason = f"failed fetching {label}: {exc}"
+            break
+    else:
+        complete = True
+
+    showtimes: list[ScrapedShowtime] = []
+    reported_count = 0
+    for payload in payloads:
+        day_showtimes, day_count = parse_angelika_dallas_films(payload)
+        showtimes.extend(day_showtimes)
+        reported_count += day_count
+
+    return ScrapeResult(
+        showtimes=showtimes,
+        reported_count=reported_count,
+        complete=complete,
+        incomplete_reason=incomplete_reason,
+    )
+
+
 def parse_angelika_dallas_films(payload: dict[str, Any]) -> tuple[list[ScrapedShowtime], int]:
     """Map a `/films` API response into showtime records.
 
@@ -596,14 +970,77 @@ def parse_angelika_dallas_films(payload: dict[str, Any]) -> tuple[list[ScrapedSh
 
 
 def scrape_angelika_dallas_showtimes(
-    source_url: str = "https://angelikafilmcenter.com/dallas"
+    source_url: str = "https://angelikafilmcenter.com/dallas", timeout_ms: int = 30_000
 ) -> ScrapeResult:
+    """Fetch every showtime Angelika Dallas currently has published for
+    its already-open movies, across every date its own "now playing"
+    date-selector strip currently offers (research.md §3) — not just
+    today. One browser/context/page is reused across all dates clicked
+    through in this run."""
     logger.info("Starting Angelika Dallas showtime scrape for %s", source_url)
-    payload = fetch_angelika_dallas_films(source_url)
-    showtimes, reported_count = parse_angelika_dallas_films(payload)
-    logger.info(
-        "Angelika Dallas scrape complete: %d showtime(s) parsed out of %d reported sessions",
-        len(showtimes), reported_count,
-    )
-    return ScrapeResult(showtimes=showtimes, reported_count=reported_count)
+    today = datetime.now(tz=CENTRAL_TIME).date()
+
+    last_error: Exception | None = None
+    for attempt in range(1, MAX_FETCH_ATTEMPTS + 1):
+        try:
+            with sync_playwright() as p:
+                browser = p.chromium.launch(headless=True)
+                try:
+                    context = browser.new_context(user_agent=REALISTIC_USER_AGENT)
+                    Stealth().apply_stealth_sync(context)
+                    page = context.new_page()
+                    try:
+                        with page.expect_response(
+                            lambda response: "/films" in response.url
+                            and f"cinemaId={ANGELIKA_DALLAS_CINEMA_ID}" in response.url,
+                            timeout=timeout_ms,
+                        ) as response_info:
+                            page.goto(source_url, wait_until="domcontentloaded", timeout=timeout_ms)
+                    except PlaywrightTimeoutError as exc:
+                        if looks_blocked(page.content()):
+                            raise BlockedError(
+                                "Source appears to have served a block/challenge page: "
+                                f"{source_url}"
+                            ) from exc
+                        raise
+
+                    initial_response = response_info.value
+                    if initial_response.status != 200:
+                        raise RuntimeError(
+                            "Angelika Dallas films request failed with HTTP "
+                            f"{initial_response.status}"
+                        )
+                    initial_payload = initial_response.json()
+
+                    labeled_dates = _extract_angelika_labeled_dates(page, today)
+                    result = _walk_angelika_dallas_dates(
+                        labeled_dates,
+                        initial_payload,
+                        lambda label: _click_angelika_date_with_retry(page, label, timeout_ms),
+                    )
+                finally:
+                    browser.close()
+        except (
+            PlaywrightError, PlaywrightTimeoutError, BlockedError,
+            RuntimeError, json.JSONDecodeError,
+        ) as exc:
+            last_error = exc
+            logger.warning(
+                "Fetch attempt %d/%d failed for %s: %s",
+                attempt, MAX_FETCH_ATTEMPTS, source_url, exc,
+            )
+            if attempt < MAX_FETCH_ATTEMPTS:
+                time_module.sleep(RETRY_BACKOFF_SECONDS)
+                continue
+            raise
+        else:
+            logger.info(
+                "Angelika Dallas scrape complete: %d showtime(s) parsed out of %d reported "
+                "sessions across %d date(s) (complete=%s)",
+                len(result.showtimes), result.reported_count, len(labeled_dates), result.complete,
+            )
+            return result
+
+    assert last_error is not None
+    raise last_error
 

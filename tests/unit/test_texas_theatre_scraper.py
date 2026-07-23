@@ -1,7 +1,9 @@
 from datetime import date, time
 
 from cinema_recs.scraper import (
+    _walk_texas_theatre_months,
     extract_format,
+    extract_next_month_url,
     is_non_film_event,
     parse_texas_theatre_html,
 )
@@ -203,3 +205,116 @@ def test_parse_texas_theatre_html_excludes_non_film_tagged_events():
     assert count == 1
     assert len(showtimes) == 1
     assert showtimes[0].movie_title == "THE SHINING"
+
+
+# --- Full showtime window (feature 009): month-walk via "next month" link ---
+
+BASE_URL = "https://thetexastheatre.com"
+
+
+def _month_html(title: str, listing_count: int, next_href: str | None) -> str:
+    listings = "".join(
+        f"""
+        <div class="calendar-listing">
+          <div class="tags"><span class="film"></span></div>
+          <h3><a href="/films-and-events/movie-{i}">Movie {i}</a></h3>
+          <div class="listing-showtimes">
+            <p>Showtimes: <span class="visually-hidden">Fri, Jul {i + 1} </span></p>
+            <ul class="times">
+              <li><a class="use-ajax" href="/order/add-tickets/{i}/nojs">7:00pm</a></li>
+            </ul>
+          </div>
+        </div>
+        """
+        for i in range(listing_count)
+    )
+    next_link = (
+        f'<a class="col-11 calendar-next" href="{next_href}">Next</a>' if next_href else ""
+    )
+    return f"""
+    <!DOCTYPE html>
+    <html><head><title>{title}</title></head>
+    <body><div id="calendar">{listings}</div>{next_link}</body></html>
+    """
+
+
+def test_extract_next_month_url_resolves_root_relative_href():
+    html = _month_html("July 2026 | The Texas Theatre", 0, "/calendar/august/2026")
+    assert extract_next_month_url(html, BASE_URL) == "https://thetexastheatre.com/calendar/august/2026"
+
+
+def test_extract_next_month_url_none_when_absent():
+    html = _month_html("February 2027 | The Texas Theatre", 0, None)
+    assert extract_next_month_url(html, BASE_URL) is None
+
+
+def test_walk_texas_theatre_months_stops_after_two_consecutive_empty_months():
+    pages = {
+        "/jul": _month_html("July 2026 | The Texas Theatre", 2, f"{BASE_URL}/aug"),
+        f"{BASE_URL}/aug": _month_html("August 2026 | The Texas Theatre", 0, f"{BASE_URL}/sep"),
+        f"{BASE_URL}/sep": _month_html("September 2026 | The Texas Theatre", 0, f"{BASE_URL}/oct"),
+    }
+    fetched = []
+
+    def fetch_page_fn(url):
+        fetched.append(url)
+        return pages[url]
+
+    result = _walk_texas_theatre_months(fetch_page_fn, "/jul", base_url=BASE_URL)
+
+    # Stops once /aug and /sep have both come back empty - never fetches /oct.
+    assert fetched == ["/jul", f"{BASE_URL}/aug", f"{BASE_URL}/sep"]
+    assert len(result.showtimes) == 2
+    assert result.complete is True
+    assert result.incomplete_reason is None
+
+
+def test_walk_texas_theatre_months_tolerates_non_monotonic_taper():
+    # Mirrors the real observed pattern (research.md §2): Sep=4 < Oct=5.
+    # A single empty month between two non-empty months must not stop the walk.
+    pages = {
+        "/jul": _month_html("July 2026 | The Texas Theatre", 4, f"{BASE_URL}/aug"),
+        f"{BASE_URL}/aug": _month_html("August 2026 | The Texas Theatre", 0, f"{BASE_URL}/sep"),
+        f"{BASE_URL}/sep": _month_html("September 2026 | The Texas Theatre", 5, f"{BASE_URL}/oct"),
+        f"{BASE_URL}/oct": _month_html("October 2026 | The Texas Theatre", 0, f"{BASE_URL}/nov"),
+        f"{BASE_URL}/nov": _month_html("November 2026 | The Texas Theatre", 0, f"{BASE_URL}/dec"),
+    }
+
+    def fetch_page_fn(url):
+        return pages[url]
+
+    result = _walk_texas_theatre_months(fetch_page_fn, "/jul", base_url=BASE_URL)
+
+    assert len(result.showtimes) == 9  # 4 (Jul) + 0 (Aug) + 5 (Sep)
+    assert result.complete is True
+
+
+def test_walk_texas_theatre_months_stops_when_no_next_link():
+    pages = {
+        "/jan": _month_html("January 2027 | The Texas Theatre", 0, None),
+    }
+
+    def fetch_page_fn(url):
+        return pages[url]
+
+    result = _walk_texas_theatre_months(fetch_page_fn, "/jan", base_url=BASE_URL)
+
+    assert result.showtimes == []
+    assert result.complete is True
+
+
+def test_walk_texas_theatre_months_marks_incomplete_when_a_month_fails():
+    pages = {
+        "/jul": _month_html("July 2026 | The Texas Theatre", 1, f"{BASE_URL}/aug"),
+    }
+
+    def fetch_page_fn(url):
+        if url not in pages:
+            raise RuntimeError("Blocked by bot protection")
+        return pages[url]
+
+    result = _walk_texas_theatre_months(fetch_page_fn, "/jul", base_url=BASE_URL)
+
+    assert len(result.showtimes) == 1
+    assert result.complete is False
+    assert f"{BASE_URL}/aug" in result.incomplete_reason
