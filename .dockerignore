@@ -13,4 +13,5 @@ build/
 .claude/
 .specify/
 specs/
+graphify-out/
 README.md
