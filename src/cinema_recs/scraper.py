@@ -4,7 +4,7 @@ import re
 import time as time_module
 from datetime import date, datetime, time, timedelta
 from typing import Any, Callable, NamedTuple
-from urllib.parse import urljoin
+from urllib.parse import parse_qs, urljoin, urlsplit
 from zoneinfo import ZoneInfo
 
 from bs4 import BeautifulSoup
@@ -1357,4 +1357,258 @@ def scrape_amc_stonebriar_showtimes(
 
     assert last_error is not None
     raise last_error
+
+# --- Cinemark West Plano XD and ScreenX Showtime Source Scraper ---
+
+# Cinemark West Plano's date-tab widget is backed by a first-party,
+# server-rendered Umbraco "surface controller" endpoint — confirmed by
+# inspecting live network traffic against
+# https://www.cinemark.com/theatres/tx-plano/cinemark-west-plano-xd-and-screenx
+# (spec 012 research.md §1): clicking a date tab issues
+# GET /umbraco/surface/Showtimes/GetByTheaterId?theaterId=231&showDate=YYYY-MM-DD
+# and swaps in the returned HTML. Unlike Angelika Dallas, no client JSON API
+# or auth scheme needs to be reverse-engineered — the endpoint itself
+# returns real showtime markup, fetched the same way as Texas Theatre's
+# calendar pages (Playwright + stealth, retried via
+# `_fetch_page_html_with_retry`), since plain-httpx behavior against this
+# endpoint hasn't been verified headless (research.md §1).
+#
+# 70mm presentations are NOT a format tag on the base film's listing — they
+# appear as an entirely separate movie listing whose title ends in " 70mm"
+# and which carries its own CinemarkMovieId (confirmed live: "The Odyssey"
+# id=108919 vs. "The Odyssey 70mm" id=110535). The parser strips that title
+# suffix and tags format="70mm" instead, so 70mm showtimes fold back into
+# the base film's identity rather than surfacing as a separate "movie"
+# (research.md §2).
+CINEMARK_WEST_PLANO_THEATER_ID = "231"
+
+_CINEMARK_70MM_TITLE_RE = re.compile(r"\s+70mm$", re.IGNORECASE)
+_CINEMARK_DATEVALUE_RE = re.compile(r'data-datevalue="(\d{4}-\d{2}-\d{2})"')
+_CINEMARK_MOVIE_BLOCK_SELECTOR = 'div[class*="showtimeMovieBlock"]'
+
+
+def extract_cinemark_west_plano_dates(html: str) -> list[date]:
+    """The theatre page's own date-tab strip (`a.showdate-link
+    [data-datevalue="YYYY-MM-DD"]`) is the site's authoritative list of
+    every date it currently has a schedule for (research.md §4) — walked
+    in document order and deduplicated, rather than guessing a fixed day
+    count."""
+    seen: set[str] = set()
+    dates: list[date] = []
+    for raw in _CINEMARK_DATEVALUE_RE.findall(html):
+        if raw in seen:
+            continue
+        seen.add(raw)
+        try:
+            dates.append(date.fromisoformat(raw))
+        except ValueError:
+            continue
+    return dates
+
+
+def _strip_cinemark_70mm_suffix(title: str) -> tuple[str, bool]:
+    match = _CINEMARK_70MM_TITLE_RE.search(title)
+    if not match:
+        return title, False
+    return title[: match.start()].strip(), True
+
+
+def _cinemark_format_badge_text(alt: str) -> str:
+    """Badge alt text like "Cinemark XD" carries a "Cinemark " prefix not
+    present on the D-BOX/ScreenX/RealD 3D badges; strip it for a
+    consistent bare format label (research.md §2)."""
+    alt = alt.strip()
+    if alt.lower().startswith("cinemark "):
+        return alt[len("cinemark "):].strip()
+    return alt
+
+
+def _extract_cinemark_group_format(attribute_list_ul: Any) -> str | None:
+    """One `ul.attribute-list--auditorium-attributes` group can carry more
+    than one format badge at once (e.g. XD + D-BOX together, confirmed
+    live) — all badges present are joined into one deterministic value
+    rather than only taking the first (research.md §2, spec FR-010). A
+    group with no badge falls back to its own plain-text label (e.g.
+    "Standard Format" -> "Standard"); a group with both a badge and a
+    "Standard Format" text label (e.g. "D-BOX" showtimes that are
+    otherwise the standard, non-XD/non-70mm presentation) is tagged by
+    its badge alone, since the badge is the more specific signal."""
+    badges = [
+        _cinemark_format_badge_text(img.get("alt") or "")
+        for img in attribute_list_ul.find_all("img")
+        if (img.get("alt") or "").strip()
+    ]
+    if badges:
+        return "+".join(badges)
+
+    text_el = attribute_list_ul.find("li", class_="attribute-list__item--text")
+    if text_el is not None:
+        text = text_el.get_text(strip=True)
+        if text.lower() == "standard format":
+            return "Standard"
+        return text or None
+    return None
+
+
+def _parse_cinemark_ticket_url_showtime(href: str) -> datetime | None:
+    """Each showtime's own `TicketSeatMap` link carries a `Showtime=`
+    query param with a naive local (Central Time) ISO timestamp — the
+    same value displayed on the page, confirmed live (research.md §3/§5)
+    — so no separate URL construction or offset handling is needed."""
+    raw = parse_qs(urlsplit(href).query).get("Showtime", [None])[0]
+    if not raw:
+        return None
+    try:
+        return datetime.fromisoformat(raw)
+    except ValueError:
+        return None
+
+
+def parse_cinemark_west_plano_html(
+    html: str, base_url: str = "https://www.cinemark.com"
+) -> tuple[list[ScrapedShowtime], int]:
+    """Parse one date's `GetByTheaterId` HTML fragment.
+
+    Each film gets one `div[class*="showtimeMovieBlock"]` block. Within
+    it, `.movieBlockShowtimes` holds a flat, repeating sequence of direct
+    children in document order: a `ul.attribute-list--auditorium-
+    attributes` (the current format group's badges/label) followed by one
+    or more `div.showtimeMovieTimes` blocks (a "Late Fri Night/Sat
+    Morning" secondary time block can appear with no attribute-list of
+    its own — confirmed live: 3 attribute-list groups but 4
+    showtimeMovieTimes blocks for a single film) — so groups are tracked
+    by walking DOM order and remembering the most recently seen
+    attribute-list, not by zipping parallel lists.
+
+    Non-film venue events: no distinguishing signal was found in this
+    markup during research (research.md §6); every listing is treated as
+    a film screening, matching the spec's Assumptions section.
+    """
+    soup = BeautifulSoup(html, "html.parser")
+    showtimes: list[ScrapedShowtime] = []
+    reported_count = 0
+
+    for block in soup.select(_CINEMARK_MOVIE_BLOCK_SELECTOR):
+        title_el = block.find("h3")
+        raw_title = title_el.get_text(strip=True) if title_el else ""
+        if not raw_title:
+            continue
+        base_title, is_70mm = _strip_cinemark_70mm_suffix(raw_title)
+
+        times_container = block.select_one(".movieBlockShowtimes")
+        if times_container is None:
+            continue
+
+        current_format: str | None = "70mm" if is_70mm else None
+        for child in times_container.find_all(recursive=False):
+            classes = child.get("class") or []
+            if "attribute-list--auditorium-attributes" in classes:
+                if is_70mm:
+                    # The 70mm listing's own attribute-list text ("70mm")
+                    # is redundant with the title-suffix signal already
+                    # used to set current_format above; skipped so it
+                    # can't be overridden by a different label later in
+                    # the same listing.
+                    continue
+                current_format = _extract_cinemark_group_format(child)
+            elif "showtimeMovieTimes" in classes:
+                for showtime_div in child.select(".showtime"):
+                    reported_count += 1
+                    link = showtime_div.find("a")
+                    href = (link.get("href") or "").strip() if link else ""
+                    if not href:
+                        continue
+                    parsed = _parse_cinemark_ticket_url_showtime(href)
+                    if parsed is None:
+                        continue
+                    showtimes.append(
+                        ScrapedShowtime(
+                            movie_title=base_title,
+                            show_date=parsed.date(),
+                            start_time=parsed.time(),
+                            format=current_format or "Standard",
+                            ticket_url=urljoin(base_url, href),
+                        )
+                    )
+
+    return showtimes, reported_count
+
+
+def _walk_cinemark_west_plano_dates(
+    dates: list[date],
+    fetch_date_fn: Callable[[date], str],
+    base_url: str,
+) -> ScrapeResult:
+    """Fetch and parse one date's HTML per entry in `dates` (the site's
+    own date-tab list, research.md §4), stopping early if a date's fetch
+    raises after exhausting its own retries. Complete only when every
+    date was fetched. Pure walking logic, independent of Playwright, so
+    it can be unit tested with a fake `fetch_date_fn`."""
+    showtimes: list[ScrapedShowtime] = []
+    reported_count = 0
+    complete = False
+    incomplete_reason: str | None = None
+
+    for show_date in dates:
+        try:
+            html = fetch_date_fn(show_date)
+        except Exception as exc:  # noqa: BLE001 - any per-date failure ends the walk, not the run
+            incomplete_reason = f"failed fetching {show_date.isoformat()}: {exc}"
+            break
+        day_showtimes, day_count = parse_cinemark_west_plano_html(html, base_url=base_url)
+        showtimes.extend(day_showtimes)
+        reported_count += day_count
+    else:
+        complete = True
+
+    return ScrapeResult(
+        showtimes=showtimes,
+        reported_count=reported_count,
+        complete=complete,
+        incomplete_reason=incomplete_reason,
+    )
+
+
+def scrape_cinemark_west_plano_showtimes(
+    source_url: str = "https://www.cinemark.com/theatres/tx-plano/cinemark-west-plano-xd-and-screenx",
+    theater_id: str = CINEMARK_WEST_PLANO_THEATER_ID,
+    timeout_ms: int = 30_000,
+) -> ScrapeResult:
+    """Fetch every showtime Cinemark West Plano currently has published,
+    across every date its own date-tab strip currently offers
+    (research.md §4), by calling the same Umbraco surface-controller
+    endpoint the tab strip itself calls (research.md §1). One
+    browser/context/page is reused across every date fetched in this
+    run."""
+    logger.info("Starting Cinemark West Plano showtime scrape for %s", source_url)
+    split = urlsplit(source_url)
+    origin = f"{split.scheme}://{split.netloc}"
+
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        try:
+            context = browser.new_context(user_agent=REALISTIC_USER_AGENT)
+            Stealth().apply_stealth_sync(context)
+            page = context.new_page()
+
+            index_html = _fetch_page_html_with_retry(page, source_url, timeout_ms)
+            dates = extract_cinemark_west_plano_dates(index_html)
+
+            def _fetch_date(show_date: date) -> str:
+                url = (
+                    f"{origin}/umbraco/surface/Showtimes/GetByTheaterId"
+                    f"?theaterId={theater_id}&showDate={show_date.isoformat()}"
+                )
+                return _fetch_page_html_with_retry(page, url, timeout_ms)
+
+            result = _walk_cinemark_west_plano_dates(dates, _fetch_date, base_url=origin)
+        finally:
+            browser.close()
+
+    logger.info(
+        "Cinemark West Plano scrape complete: %d showtime(s) parsed out of %d reported "
+        "across %d date(s) (complete=%s)",
+        len(result.showtimes), result.reported_count, len(dates), result.complete,
+    )
+    return result
 
