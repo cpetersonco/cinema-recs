@@ -62,6 +62,24 @@ def test_health_shows_no_runs_yet(client):
     assert b"No ingestion runs have completed yet" in response.data
 
 
+def test_health_shows_app_version_when_set(client, monkeypatch):
+    monkeypatch.setenv("APP_VERSION", "a1b2c3d")
+
+    response = client.get("/health")
+
+    assert response.status_code == 200
+    assert b"a1b2c3d" in response.data
+
+
+def test_health_shows_dev_when_app_version_unset(client, monkeypatch):
+    monkeypatch.delenv("APP_VERSION", raising=False)
+
+    response = client.get("/health")
+
+    assert response.status_code == 200
+    assert b"dev" in response.data
+
+
 def test_health_shows_success_outcome(client, config, cinema):
     storage.record_ingestion_run(
         config.db_path, cinema.id, datetime(2026, 8, 1, 10, 0, 0), datetime(2026, 8, 1, 10, 0, 5),

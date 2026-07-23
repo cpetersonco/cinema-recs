@@ -17,7 +17,9 @@ configuration (no separate setup required). See
 [`specs/002-tmdb-metadata-enrichment/`](specs/002-tmdb-metadata-enrichment/),
 [`specs/003-showtime-recommendation-rules/`](specs/003-showtime-recommendation-rules/),
 [`specs/004-showtime-notifications/`](specs/004-showtime-notifications/),
-and [`specs/005-showtime-cancellation-alerts/`](specs/005-showtime-cancellation-alerts/)
+[`specs/005-showtime-cancellation-alerts/`](specs/005-showtime-cancellation-alerts/),
+[`specs/006-texas-theatre-source/`](specs/006-texas-theatre-source/),
+and [`specs/007-unraid-cicd-autodeploy/`](specs/007-unraid-cicd-autodeploy/)
 for the full specs, plans, and task breakdowns behind these features.
 
 ## Quickstart
@@ -78,6 +80,30 @@ Letterboxd scraping uses `curl_cffi` (TLS/browser-fingerprint impersonation)
 rather than plain `requests`, since anonymous plain-`requests` traffic to
 `letterboxd.com` is liable to trip Cloudflare's rate limiting under any
 real request volume — this was hit and confirmed during development.
+
+## Deployment (CI/CD)
+
+Every push to `main` runs `.github/workflows/deploy.yml`: `pytest`
+(hard gate — a failing commit is never built or published), `ruff`
+(advisory only, since this repo has pre-existing style findings that
+predate this pipeline), then a `linux/amd64` image build tagged both
+`latest` and the commit's short SHA, published to
+`ghcr.io/cpetersonco/cinema-recs` using the workflow's built-in
+`GITHUB_TOKEN` (no manually-created secret needed).
+
+On Tower, a single host-wide [Watchtower](https://containrrr.dev/watchtower/)
+instance (installed once via Unraid's Community Applications store, not
+part of this repo) polls that image and automatically recreates the
+`cinema-recs` container when a new one is published, preserving the
+`/data` volume. It's scoped to this container only via the
+`com.centurylinklabs.watchtower.enable: "true"` label already set in
+`docker-compose.yml`, so it won't touch unrelated containers on the
+host. The currently running commit is shown on `/health` under
+"Running version".
+
+One-time setup steps (GitHub Actions permissions, making the GHCR
+package public, installing/configuring Watchtower on Tower) are in
+[`specs/007-unraid-cicd-autodeploy/quickstart.md`](specs/007-unraid-cicd-autodeploy/quickstart.md).
 
 ## How showtime fetching works
 

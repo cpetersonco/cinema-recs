@@ -1,7 +1,10 @@
 services:
   cinema-recs:
+    image: ghcr.io/cpetersonco/cinema-recs:latest
     build: .
     container_name: cinema-recs
+    labels:
+      com.centurylinklabs.watchtower.enable: "true"
     environment:
       CINEMA_RECS_SOURCE_URL: "${CINEMA_RECS_SOURCE_URL:?set to the Cinepolis McKinney showtimes URL}"
       CINEMA_RECS_REFRESH_INTERVAL_HOURS: "${CINEMA_RECS_REFRESH_INTERVAL_HOURS:-3}"

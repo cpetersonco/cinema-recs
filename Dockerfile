@@ -11,11 +11,14 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY src/ ./src/
 COPY main.py .
 
+ARG GIT_SHA=dev
+
 ENV CINEMA_RECS_DATA_DIR=/data \
     CINEMA_RECS_PORT=8080 \
     PUID=99 \
     PGID=100 \
-    PYTHONPATH=/app/src
+    PYTHONPATH=/app/src \
+    APP_VERSION=$GIT_SHA
 
 RUN mkdir -p /data
 

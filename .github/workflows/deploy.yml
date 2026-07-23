@@ -1,0 +1,66 @@
+name: Test, Build, and Publish
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright/python:v1.48.0-jammy
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          pip install --no-cache-dir -r requirements.txt
+          pip install --no-cache-dir ruff
+
+      # Advisory only: this repo has pre-existing lint findings (mostly
+      # line-length) that predate this pipeline. Surfacing them without
+      # blocking deploys avoids gating releases on unrelated style debt;
+      # pytest below is the real correctness gate for FR-002/FR-007.
+      - name: Lint (ruff, advisory)
+        continue-on-error: true
+        run: ruff check .
+
+      - name: Test (pytest)
+        env:
+          PYTHONPATH: src
+        run: pytest tests/ -q
+
+  build-push:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set image tags
+        id: vars
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64
+          push: true
+          build-args: |
+            GIT_SHA=${{ steps.vars.outputs.sha_short }}
+          tags: |
+            ghcr.io/cpetersonco/cinema-recs:latest
+            ghcr.io/cpetersonco/cinema-recs:${{ steps.vars.outputs.sha_short }}

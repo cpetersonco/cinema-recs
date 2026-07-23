@@ -1,3 +1,5 @@
+import os
+
 from flask import Flask, render_template_string
 
 from cinema_recs.config import Config
@@ -62,6 +64,7 @@ LISTING_TEMPLATE = """
 HEALTH_TEMPLATE = """
 <!doctype html>
 <title>Ingestion Health</title>
+<p>Running version: <strong>{{ app_version }}</strong></p>
 {% for section in cinema_runs %}
 <h1>{{ section.cinema.name }} Ingestion Health</h1>
 {% set run = section.run %}
@@ -116,6 +119,10 @@ def create_app(config: Config, cinemas: list[Cinema]) -> Flask:
             {"cinema": cinema, "run": get_latest_ingestion_run(config.db_path, cinema.id)}
             for cinema in cinemas
         ]
-        return render_template_string(HEALTH_TEMPLATE, cinema_runs=cinema_runs)
+        return render_template_string(
+            HEALTH_TEMPLATE,
+            cinema_runs=cinema_runs,
+            app_version=os.environ.get("APP_VERSION", "dev"),
+        )
 
     return app
