@@ -93,5 +93,13 @@
   "91": "integration/__init__.py",
   "92": "unit/__init__.py",
   "93": "One-time setup",
-  "94": "Research: Consolidated Movie Listings with Ticket and Letterboxd Links"
+  "94": "Research: Consolidated Movie Listings with Ticket and Letterboxd Links",
+  "95": "Config",
+  "96": "Data Model: Tech Debt Cleanup — Cinema Routing, Deprecated APIs, Startup Coverage",
+  "97": "web.py",
+  "98": "main.py",
+  "99": "init_schema",
+  "100": "Cinema",
+  "101": "_ensure_letterboxd_data_cached",
+  "102": "1. Calendar Page Source & Parsing Method"
 }

@@ -10,8 +10,8 @@
     "semantic_hash": ""
   },
   ".specify/feature.json": {
-    "mtime": 1784818541.8452618,
-    "ast_hash": "cda36bf67e610eab3690806042e27902",
+    "mtime": 1784824835.465133,
+    "ast_hash": "e21b386e4eaac1a0cb391664da792e3d",
     "semantic_hash": ""
   },
   ".specify/init-options.json": {
@@ -75,8 +75,8 @@
     "semantic_hash": ""
   },
   "main.py": {
-    "mtime": 1784814230.598633,
-    "ast_hash": "193397459d70a3c17c4bef075acb1f84",
+    "mtime": 1784825507.5582287,
+    "ast_hash": "68555422342508f07d5a512f77bba637",
     "semantic_hash": ""
   },
   "pyproject.toml": {
@@ -105,8 +105,8 @@
     "semantic_hash": ""
   },
   "src/cinema_recs/ingest.py": {
-    "mtime": 1784816079.4147754,
-    "ast_hash": "f74a014d7c1f7a6624db5696c3f13f42",
+    "mtime": 1784826227.4080129,
+    "ast_hash": "0b4f98a49ae842729419ba058a1df009",
     "semantic_hash": ""
   },
   "src/cinema_recs/letterboxd_client.py": {
@@ -120,13 +120,13 @@
     "semantic_hash": ""
   },
   "src/cinema_recs/models.py": {
-    "mtime": 1784814230.616867,
-    "ast_hash": "20cf6b322effac27482b7389870dcb5e",
+    "mtime": 1784825397.1904843,
+    "ast_hash": "e281d9f363ecd8acb2eeaacd50eb6dd9",
     "semantic_hash": ""
   },
   "src/cinema_recs/notify.py": {
-    "mtime": 1784814230.617067,
-    "ast_hash": "e4e1d56108077a6411bc8e6f7219d34a",
+    "mtime": 1784826241.2614746,
+    "ast_hash": "4b0058b33e0cd71f36ebe33a804bc4ed",
     "semantic_hash": ""
   },
   "src/cinema_recs/recommend.py": {
@@ -145,8 +145,8 @@
     "semantic_hash": ""
   },
   "src/cinema_recs/storage.py": {
-    "mtime": 1784814230.618379,
-    "ast_hash": "2d0775ff1a5a9fcdb8e3a0e50730a015",
+    "mtime": 1784826241.2607358,
+    "ast_hash": "6790f877a0f56c961efdccdc648e7ce9",
     "semantic_hash": ""
   },
   "src/cinema_recs/tmdb_client.py": {
@@ -155,8 +155,8 @@
     "semantic_hash": ""
   },
   "src/cinema_recs/web.py": {
-    "mtime": 1784820198.328333,
-    "ast_hash": "bbc1e0ec7359e36640f9fa5faa7ac127",
+    "mtime": 1784824027.9111426,
+    "ast_hash": "d2ec09f4b57d8f85f4f1260d6ec09330",
     "semantic_hash": ""
   },
   "tests/__init__.py": {
@@ -190,8 +190,8 @@
     "semantic_hash": ""
   },
   "tests/integration/test_web_view.py": {
-    "mtime": 1784820056.3460662,
-    "ast_hash": "3290b88db83208652f1184f4322a90e1",
+    "mtime": 1784824007.8627644,
+    "ast_hash": "b00392657f8f8c8bc705911332cb726f",
     "semantic_hash": ""
   },
   "tests/unit/__init__.py": {
@@ -220,8 +220,8 @@
     "semantic_hash": ""
   },
   "tests/unit/test_ingest.py": {
-    "mtime": 1784814230.6212573,
-    "ast_hash": "21def6d62b72a5ffee7eb28d171b11c1",
+    "mtime": 1784826384.8363435,
+    "ast_hash": "48ecba17b6667122b5ad0535eee13d5a",
     "semantic_hash": ""
   },
   "tests/unit/test_letterboxd_client.py": {
@@ -245,8 +245,8 @@
     "semantic_hash": ""
   },
   "tests/unit/test_storage.py": {
-    "mtime": 1784814230.621859,
-    "ast_hash": "b3fde214d180ad15b80505f36d4ec4ad",
+    "mtime": 1784825334.8179393,
+    "ast_hash": "de2ff6ee4c5624b2ab2f625dec96e136",
     "semantic_hash": ""
   },
   "tests/unit/test_texas_theatre_scraper.py": {
@@ -450,8 +450,8 @@
     "semantic_hash": ""
   },
   "specs/002-tmdb-metadata-enrichment/tasks.md": {
-    "mtime": 1784814230.6024303,
-    "ast_hash": "1a774e9cb43d7ce276a2da63b2421d99",
+    "mtime": 1784824062.2739096,
+    "ast_hash": "4e36a95d82af4c3ac4001c7b11927ffc",
     "semantic_hash": ""
   },
   "specs/003-showtime-recommendation-rules/checklists/requirements.md": {
@@ -767,6 +767,46 @@
   "specs/010-consolidated-movie-listings/tasks.md": {
     "mtime": 1784820166.6259384,
     "ast_hash": "e8f8849648ab05a98f0ee9b1749f13af",
+    "semantic_hash": ""
+  },
+  "tests/unit/test_main.py": {
+    "mtime": 1784826326.7938867,
+    "ast_hash": "e7ffe5c672bc68e463df8dc923002746",
+    "semantic_hash": ""
+  },
+  "specs/011-tech-debt-cleanup/checklists/requirements.md": {
+    "mtime": 1784824888.9303617,
+    "ast_hash": "6385b092c9e7350896dac8b309fea735",
+    "semantic_hash": ""
+  },
+  "specs/011-tech-debt-cleanup/data-model.md": {
+    "mtime": 1784825017.3201935,
+    "ast_hash": "d464d0a1f61c1baf0dff086fb5c7e832",
+    "semantic_hash": ""
+  },
+  "specs/011-tech-debt-cleanup/plan.md": {
+    "mtime": 1784825063.8786223,
+    "ast_hash": "8ccc474e7e33969e910b89a57627e813",
+    "semantic_hash": ""
+  },
+  "specs/011-tech-debt-cleanup/quickstart.md": {
+    "mtime": 1784825032.9940262,
+    "ast_hash": "e0e9754b1c870e6a8984497d4f87e5ab",
+    "semantic_hash": ""
+  },
+  "specs/011-tech-debt-cleanup/research.md": {
+    "mtime": 1784825004.9011374,
+    "ast_hash": "465a82b0c68171fe6fd6f1082cad912e",
+    "semantic_hash": ""
+  },
+  "specs/011-tech-debt-cleanup/spec.md": {
+    "mtime": 1784824880.0420816,
+    "ast_hash": "bd6dd2159470b3f0618480c3687b404c",
+    "semantic_hash": ""
+  },
+  "specs/011-tech-debt-cleanup/tasks.md": {
+    "mtime": 1784826436.4414852,
+    "ast_hash": "9f261f35fa053355e56d544660cacccf",
     "semantic_hash": ""
   }
 }

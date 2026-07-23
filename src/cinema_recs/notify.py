@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 
 from cinema_recs import storage
 from cinema_recs.config import Config
@@ -157,7 +157,7 @@ def run_notifications(db_path: str, cinema_id: int, config: Config) -> int:
             db_path,
             title,
             active=True,
-            notified_at=datetime.utcnow(),
+            notified_at=datetime.now(timezone.utc).replace(tzinfo=None),
             last_delivery_outcome="sent",
             notified_showtime_id=showtime.id,
             disappearance_alerted=False,
