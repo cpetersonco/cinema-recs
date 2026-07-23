@@ -6,6 +6,7 @@ from datetime import date, datetime, time
 from typing import Any, NamedTuple
 from zoneinfo import ZoneInfo
 
+from bs4 import BeautifulSoup
 from playwright.sync_api import Error as PlaywrightError
 from playwright.sync_api import sync_playwright
 from playwright_stealth import Stealth
@@ -278,146 +279,120 @@ def is_non_film_event(text: str) -> bool:
     return bool(NON_FILM_EVENT_KEYWORDS.search(text))
 
 
-def _parse_date_and_time_from_text(text: str) -> tuple[date | None, time | None]:
-    import re
+MONTH_NUMBERS = {
+    "jan": 1, "feb": 2, "mar": 3, "apr": 4, "may": 5, "jun": 6,
+    "jul": 7, "aug": 8, "sep": 9, "oct": 10, "nov": 11, "dec": 12,
+}
 
-    clean_text = re.sub(r"<[^>]+>", " ", text)
 
-    parsed_date: date | None = None
-    iso_date_match = re.search(r"\b(\d{4})-(\d{2})-(\d{2})\b", clean_text)
-    if iso_date_match:
-        try:
-            parsed_date = date(
-                int(iso_date_match.group(1)),
-                int(iso_date_match.group(2)),
-                int(iso_date_match.group(3)),
-            )
-        except ValueError:
-            pass
+def _extract_calendar_year(soup: BeautifulSoup) -> int:
+    """The calendar page's <title> is "<Month> <Year> | The Texas Theatre"
+    (e.g. "July 2026 | The Texas Theatre") — the per-listing date text
+    itself never includes a year, so this is the only source for one."""
+    title = soup.find("title")
+    if title:
+        match = re.search(r"(\d{4})", title.get_text())
+        if match:
+            return int(match.group(1))
+    return datetime.now(tz=CENTRAL_TIME).year
 
-    if not parsed_date:
-        month_match = re.search(
-            r"\b(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+(\d{1,2})(?:st|nd|rd|th)?(?:\s*,?\s*(\d{4}))?\b",
-            clean_text,
-            re.IGNORECASE,
-        )
-        if month_match:
-            months = {
-                "jan": 1, "january": 1, "feb": 2, "february": 2, "mar": 3, "march": 3,
-                "apr": 4, "april": 4, "may": 5, "june": 6, "jun": 6, "july": 7, "jul": 7,
-                "aug": 8, "august": 8, "sep": 9, "september": 9, "oct": 10, "october": 10,
-                "nov": 11, "november": 11, "dec": 12, "december": 12,
-            }
-            m_str = month_match.group(1).lower()
-            m_num = months.get(m_str, 1)
-            day_num = int(month_match.group(2))
-            year_num = int(month_match.group(3)) if month_match.group(3) else datetime.now(tz=CENTRAL_TIME).year
-            try:
-                parsed_date = date(year_num, m_num, day_num)
-            except ValueError:
-                pass
 
-    parsed_time: time | None = None
-    time_match = re.search(r"\b(\d{1,2}):(\d{2})\s*(am|pm)?\b", clean_text, re.IGNORECASE)
-    if time_match:
-        hr = int(time_match.group(1))
-        mn = int(time_match.group(2))
-        ampm = (time_match.group(3) or "").lower()
-        if ampm == "pm" and hr < 12:
-            hr += 12
-        elif ampm == "am" and hr == 12:
-            hr = 0
-        try:
-            parsed_time = time(hr, mn)
-        except ValueError:
-            pass
+def _parse_listing_date(text: str, year: int) -> date | None:
+    match = re.search(r"([A-Za-z]{3,9})\s+(\d{1,2})", text)
+    if not match:
+        return None
+    month = MONTH_NUMBERS.get(match.group(1).lower()[:3])
+    if month is None:
+        return None
+    try:
+        return date(year, month, int(match.group(2)))
+    except ValueError:
+        return None
 
-    return parsed_date, parsed_time
+
+def _parse_listing_time(text: str) -> time | None:
+    match = re.search(r"(\d{1,2}):(\d{2})\s*(am|pm)?", text, re.IGNORECASE)
+    if not match:
+        return None
+    hour = int(match.group(1))
+    minute = int(match.group(2))
+    ampm = (match.group(3) or "").lower()
+    if ampm == "pm" and hour < 12:
+        hour += 12
+    elif ampm == "am" and hour == 12:
+        hour = 0
+    try:
+        return time(hour, minute)
+    except ValueError:
+        return None
 
 
 def parse_texas_theatre_html(
     html: str, base_url: str = "https://thetexastheatre.com"
 ) -> tuple[list[ScrapedShowtime], int]:
-    import re
+    """Parse the Texas Theatre calendar page's server-rendered markup.
+
+    Each film gets one `div.calendar-listing` block: one title, one show
+    date, and one or more showtimes — each showtime is its own `<li>`
+    with its own ticket link and (usually) its own `.film-format` span,
+    since the same film can screen in different formats across its run.
+    Non-film venue events are marked by a `.tags span` class that doesn't
+    contain "film" (spec FR-008) and are skipped before being counted at
+    all, so they never trigger a false "partial" outcome in ingest.py.
+    """
+    soup = BeautifulSoup(html, "html.parser")
+    year = _extract_calendar_year(soup)
 
     showtimes: list[ScrapedShowtime] = []
+    reported_count = 0
 
-    # Split HTML by event item containers (article, div, li)
-    raw_blocks = re.split(
-        r"(?=<article|<div[^>]+class=[\"'][^\"']*(?:event-item|event-card|event-entry|screening-item|showtime-item)|<li[^>]+class=[\"'][^\"']*(?:event-item|event-card|event-entry|screening-item|showtime-item))",
-        html,
-        flags=re.IGNORECASE,
-    )
+    for listing in soup.select("div.calendar-listing"):
+        tag_span = listing.select_one(".tags span")
+        if tag_span is not None:
+            classes = tag_span.get("class") or [""]
+            if "film" not in classes[0].lower():
+                continue  # a non-film-only venue event (e.g. live music, comedy)
+        elif is_non_film_event(listing.get_text(" ", strip=True)):
+            continue  # no recognizable tag markup — fall back to the keyword heuristic
 
-    event_blocks = [
-        b for b in raw_blocks
-        if (re.search(r"<h[1-6]", b, re.IGNORECASE) or "/event/" in b.lower())
-        and not is_non_film_event(b)  # FR-008: exclude non-film venue events
-    ]
+        title_el = listing.select_one("h3 a")
+        title = title_el.get_text(" ", strip=True) if title_el else ""
 
-    if not event_blocks:
-        event_blocks = re.findall(
-            r"<a[^>]+href=[\"']([^\"']+/event/[^\"']+)[\"'][^>]*>(.*?)</a>",
-            html,
-            re.DOTALL | re.IGNORECASE,
-        )
-        # FR-008: exclude non-film venue events (live music, comedy, etc.)
-        # before they're counted as reported/skipped screenings.
-        event_blocks = [
-            (href, block_content)
-            for href, block_content in event_blocks
-            if not is_non_film_event(block_content)
-        ]
-        if event_blocks:
-            reported_count = len(event_blocks)
-            for href, block_content in event_blocks:
-                ticket_url = href if href.startswith("http") else f"{base_url.rstrip('/')}/{href.lstrip('/')}"
-                title_match = re.search(r"<h[1-6][^>]*>(.*?)</h[1-6]>", block_content, re.IGNORECASE | re.DOTALL)
-                raw_title = title_match.group(1) if title_match else re.sub(r"<[^>]+>", " ", block_content)
-                title = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", "", raw_title)).strip()
+        date_el = listing.select_one(".listing-showtimes .visually-hidden")
+        show_date = _parse_listing_date(date_el.get_text(strip=True), year) if date_el else None
 
-                fmt = extract_format(block_content) or extract_format(title)
-                dt, tm = _parse_date_and_time_from_text(block_content)
-                if title and dt and tm:
-                    showtimes.append(
-                        ScrapedShowtime(
-                            movie_title=title,
-                            show_date=dt,
-                            start_time=tm,
-                            format=fmt,
-                            ticket_url=ticket_url,
-                        )
-                    )
-            return showtimes, reported_count
+        listing_format_fallback = extract_format(listing.get_text(" ", strip=True))
 
-    reported_count = len(event_blocks)
-    for block in event_blocks:
-        title_match = re.search(r"<h[1-6][^>]*>(.*?)</h[1-6]>", block, re.IGNORECASE | re.DOTALL)
-        if not title_match:
-            title_match = re.search(r"class=[\"'][^\"']*title[^\"']*[\"'][^>]*>(.*?)<", block, re.IGNORECASE | re.DOTALL)
+        for li in listing.select("ul.times li"):
+            reported_count += 1
+            link = li.find("a")
+            if link is None:
+                continue
 
-        raw_title = title_match.group(1) if title_match else ""
-        movie_title = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", "", raw_title)).strip()
+            start_time = _parse_listing_time(link.get_text(strip=True))
 
-        link_match = re.search(r"href=[\"']([^\"']+)[\"']", block, re.IGNORECASE)
-        ticket_url = None
-        if link_match:
-            href = link_match.group(1)
-            ticket_url = href if href.startswith("http") else f"{base_url.rstrip('/')}/{href.lstrip('/')}"
-
-        fmt = extract_format(block) or extract_format(movie_title)
-        dt, tm = _parse_date_and_time_from_text(block)
-
-        if movie_title and dt and tm:
-            showtimes.append(
-                ScrapedShowtime(
-                    movie_title=movie_title,
-                    show_date=dt,
-                    start_time=tm,
-                    format=fmt,
-                    ticket_url=ticket_url,
+            href = (link.get("href") or "").strip()
+            ticket_url = None
+            if href:
+                ticket_url = (
+                    href
+                    if href.startswith("http")
+                    else f"{base_url.rstrip('/')}/{href.lstrip('/')}"
                 )
-            )
+
+            format_el = li.select_one(".film-format")
+            fmt = format_el.get_text(strip=True) if format_el else listing_format_fallback
+
+            if title and show_date and start_time:
+                showtimes.append(
+                    ScrapedShowtime(
+                        movie_title=title,
+                        show_date=show_date,
+                        start_time=start_time,
+                        format=fmt or None,
+                        ticket_url=ticket_url,
+                    )
+                )
 
     return showtimes, reported_count
 
