@@ -40,6 +40,30 @@ def test_parse_showings_response_format_is_none():
     assert all(s.format is None for s in showtimes)
 
 
+def test_parse_showings_response_constructs_ticket_url_from_id():
+    showtimes = parse_showings_response(SAMPLE_RESPONSE)
+
+    assert showtimes[0].ticket_url == "https://www.cinepolisusa.com/mckinney/checkout/seats/1645312"
+    assert showtimes[1].ticket_url == "https://www.cinepolisusa.com/mckinney/checkout/seats/1645315"
+
+
+def test_parse_showings_response_ticket_url_is_none_without_id():
+    response = {
+        "data": [
+            {
+                "time": "2026-07-23T15:00:00Z",
+                "screenId": "1005",
+                "movie": {"id": "40256", "name": "Toy Story 5"},
+            },
+        ],
+        "count": 1,
+    }
+
+    showtimes = parse_showings_response(response)
+
+    assert showtimes[0].ticket_url is None
+
+
 def test_parse_showings_response_skips_entries_without_movie_name():
     response = {
         "data": [

@@ -30,6 +30,16 @@ MCKINNEY_SITE_ID = "168"
 CINEPOLIS_CIRCUIT_ID = "89"
 CENTRAL_TIME = ZoneInfo("America/Chicago")
 
+# Cinepolis' GraphQL API exposes no ticket/booking URL field at all (schema
+# probed directly; introspection is disabled in production). This template
+# was instead confirmed by observing the site's real "buy tickets" flow in
+# a live browser: clicking a showing navigates to exactly this URL, where
+# {id} is the same showing id already present in every showingsForDate
+# response entry. No extra network call is needed to build it. Undocumented
+# client route, same risk category as the GraphQL API itself — see
+# research.md.
+TICKET_URL_TEMPLATE = "https://www.cinepolisusa.com/mckinney/checkout/seats/{id}"
+
 # Markers that indicate Cloudflare (or similar) served a bot-challenge/block
 # page instead of real content, so callers can tell "blocked" apart from
 # a genuine API/parse failure.
@@ -62,6 +72,17 @@ class ScrapedShowtime(NamedTuple):
     show_date: date
     start_time: time
     format: str | None
+    ticket_url: str | None
+
+
+class ScrapeResult(NamedTuple):
+    showtimes: list[ScrapedShowtime]
+    # The GraphQL response's own `count` of showings, vs. len(showtimes)
+    # after parsing: a discrepancy means some entries were skipped (missing
+    # movie name / unparseable time — see parse_showings_response) rather
+    # than genuinely absent from the source, distinguishing a "partial"
+    # ingestion run from a clean "success".
+    reported_count: int
 
 
 class BlockedError(RuntimeError):
@@ -193,6 +214,9 @@ def parse_showings_response(showings_response: dict[str, Any]) -> list[ScrapedSh
             )
             continue
 
+        showing_id = entry.get("id")
+        ticket_url = TICKET_URL_TEMPLATE.format(id=showing_id) if showing_id else None
+
         local_dt = parsed_utc.astimezone(CENTRAL_TIME)
         showtimes.append(
             ScrapedShowtime(
@@ -200,13 +224,16 @@ def parse_showings_response(showings_response: dict[str, Any]) -> list[ScrapedSh
                 show_date=local_dt.date(),
                 start_time=local_dt.time(),
                 format=None,
+                ticket_url=ticket_url,
             )
         )
 
     return showtimes
 
 
-def scrape_showtimes(source_url: str, show_date: date | None = None) -> list[ScrapedShowtime]:
+def scrape_showtimes(source_url: str, show_date: date | None = None) -> ScrapeResult:
     show_date = show_date or datetime.now(tz=CENTRAL_TIME).date()
     showings_response = fetch_showings_json(source_url, show_date)
-    return parse_showings_response(showings_response)
+    showtimes = parse_showings_response(showings_response)
+    reported_count = showings_response.get("count", len(showtimes))
+    return ScrapeResult(showtimes=showtimes, reported_count=reported_count)

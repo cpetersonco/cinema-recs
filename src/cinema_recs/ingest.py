@@ -12,7 +12,7 @@ def run_ingestion(db_path: str, cinema: Cinema) -> IngestionRun:
     started_at = datetime.utcnow()
 
     try:
-        showtimes = scrape_showtimes(cinema.source_url)
+        result = scrape_showtimes(cinema.source_url)
     except Exception as exc:  # noqa: BLE001 - any scrape failure is recorded, not raised
         logger.exception("Ingestion run failed for cinema %s", cinema.id)
         finished_at = datetime.utcnow()
@@ -26,6 +26,8 @@ def run_ingestion(db_path: str, cinema: Cinema) -> IngestionRun:
             error_message=str(exc),
         )
 
+    showtimes = result.showtimes
+
     for showtime in showtimes:
         storage.upsert_showtime(
             db_path,
@@ -35,6 +37,7 @@ def run_ingestion(db_path: str, cinema: Cinema) -> IngestionRun:
             start_time=showtime.start_time,
             format=showtime.format,
             seen_at=started_at,
+            ticket_url=showtime.ticket_url,
         )
 
     stale_count = storage.mark_stale_showtimes(db_path, cinema.id, started_at)
@@ -44,9 +47,20 @@ def run_ingestion(db_path: str, cinema: Cinema) -> IngestionRun:
     finished_at = datetime.utcnow()
     outcome = "success"
     error_message = None
+    skipped_count = result.reported_count - len(showtimes)
+
     if not showtimes:
         logger.warning(
             "Ingestion run for cinema %s completed with zero showtimes found", cinema.id
+        )
+    elif skipped_count > 0:
+        # Source was reachable and most data came through, but some entries
+        # were dropped during parsing (missing movie title / unparseable
+        # time) rather than genuinely absent from the source.
+        outcome = "partial"
+        error_message = f"{skipped_count} showing(s) skipped (missing title or unparseable time)"
+        logger.warning(
+            "Ingestion run for cinema %s completed partially: %s", cinema.id, error_message
         )
 
     return storage.record_ingestion_run(

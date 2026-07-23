@@ -52,6 +52,59 @@ per FR-003 and the data model).
   clarification — the operator chose Cinepolis' own site as the
   authoritative source, and a working path into it was found.
 
+## Decision: Ticket URL (FR-011) is constructed from the existing `id` field — no new API/scrape needed
+
+**Rationale**: FR-011 (added via a later clarification session — see spec.md)
+requires capturing a per-showing ticket-purchase URL when available.
+Two things were confirmed live against the real site:
+
+1. The `showingsForDate` GraphQL query has no URL-shaped field on its
+   `Showing` type — a probe of 15 plausible field names (`bookingUrl`,
+   `ticketUrl`, `purchaseUrl`, `checkoutUrl`, etc.) all returned GraphQL
+   schema errors ("Field '<name>' doesn't exist on type 'Showing'"), and
+   introspection (`__type`) is disabled in production.
+2. However, the site's own "buy tickets" flow doesn't need one either:
+   clicking a showing button in a real (stealth-Playwright) browser
+   session navigates the SPA to
+   `https://www.cinepolisusa.com/mckinney/checkout/seats/{id}` — where
+   `{id}` is exactly the same `id` value already present in every
+   `showingsForDate` response entry (verified against 3 separate
+   showings, e.g. GraphQL `id: "1644972"` → checkout URL
+   `.../checkout/seats/1644972`). The scraper already receives this
+   `id`; `parse_showings_response` simply discards it today.
+
+The ticket URL is therefore a pure string template —
+`f"https://www.cinepolisusa.com/{location_slug}/checkout/seats/{id}"` —
+computed locally from data already fetched, requiring **no new network
+call, no new Playwright interaction, and no change to the GraphQL
+query**. `location_slug` ("mckinney") is already known — it's embedded
+in the cinema's configured `source_url`.
+
+**Risk accepted**: This is an undocumented, reverse-engineered client
+route (same category of risk as the GraphQL API itself, per the
+Complexity Tracking entry above) — Cinepolis could change this URL
+scheme without notice. If a constructed URL ever 404s, that's a silent
+staleness risk the operator would only notice by clicking it; no
+validation call is made against the URL before storing it (validating
+would require a full checkout-flow page load per showing, which is far
+more expensive than the ingestion budget allows for a "nice to have"
+link). This mirrors FR-011's own "leave it absent rather than fabricating"
+framing loosely, but here the construction is confirmed against real
+observed behavior, not guessed — the risk is drift over time, not
+present-day fabrication.
+
+**Alternatives considered**:
+- Reverse-engineering a booking URL via GraphQL introspection: rejected
+  — introspection is disabled on this endpoint.
+- Loading each showing's checkout page via Playwright during ingestion to
+  confirm/validate the URL live: rejected — would multiply ingestion's
+  Playwright page-load count by the number of showings captured (dozens
+  per run), blowing well past the existing ~30s ingestion performance
+  goal for a non-critical enhancement.
+- Leaving `ticket_url` unimplemented / always `NULL`: rejected — the
+  operator explicitly asked for it (feature 004's driving request), and
+  a working construction was found with no added runtime cost.
+
 ## Decision: SQLite for storage
 
 **Rationale**: Single cinema, low data volume (tens to low hundreds of

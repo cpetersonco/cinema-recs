@@ -27,6 +27,7 @@ FR-005, FR-006).
 | `show_date` | date, not null | |
 | `start_time` | time, not null | |
 | `format` | text, nullable | e.g. "Standard", "VIP", "4DX"; null if source doesn't specify |
+| `ticket_url` | text, nullable | Direct ticket-purchase link (spec FR-011); constructed as `https://www.cinepolisusa.com/{location_slug}/checkout/seats/{showing_id}` from the GraphQL response's own `id` field (research.md) — never fabricated when a showing has no `id` to build it from |
 | `first_seen_at` | timestamp, not null | When this showtime was first ingested |
 | `last_seen_at` | timestamp, not null | Updated on every ingestion run that still finds this showtime published |
 | `status` | text, not null | `active` or `stale` (see lifecycle below) |

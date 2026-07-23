@@ -34,3 +34,16 @@
 - Items marked incomplete require spec updates before `/speckit-clarify` or `/speckit-plan`
 - All three clarifications (source/method, refresh cadence, user-facing view scope)
   were resolved in the `/speckit-clarify` session on 2026-07-22.
+- Updated again 2026-07-22 (via feature 004's clarification session):
+  added FR-011, a new best-effort requirement to capture a per-showing
+  ticket-purchase URL when the source provides one, needed by feature
+  004's notifications.
+- Updated again 2026-07-22 (`/speckit-plan` amendment): research.md,
+  data-model.md, quickstart.md, and plan.md's Complexity Tracking were
+  amended for FR-011. Confirmed live that no new API call is needed — the
+  ticket URL is a string template (`.../checkout/seats/{id}`) built from
+  the GraphQL response's existing `id` field, verified against 3 real
+  showings. `tasks.md` has NOT yet been amended with the actual
+  implementation tasks (parser change, schema migration, storage/ingest
+  updates) — that's the remaining step before `/speckit-implement` can
+  build FR-011.

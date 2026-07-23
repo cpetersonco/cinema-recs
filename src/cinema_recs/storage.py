@@ -30,6 +30,7 @@ CREATE TABLE IF NOT EXISTS showtime (
     show_date TEXT NOT NULL,
     start_time TEXT NOT NULL,
     format TEXT,
+    ticket_url TEXT,
     first_seen_at TEXT NOT NULL,
     last_seen_at TEXT NOT NULL,
     status TEXT NOT NULL,
@@ -112,6 +113,16 @@ def get_connection(db_path: str) -> Iterator[sqlite3.Connection]:
 def init_schema(db_path: str) -> None:
     with get_connection(db_path) as conn:
         conn.executescript(SCHEMA)
+        _migrate_add_showtime_ticket_url(conn)
+
+
+def _migrate_add_showtime_ticket_url(conn: sqlite3.Connection) -> None:
+    """Add showtime.ticket_url (spec FR-011) to a database created before
+    this column existed. A no-op against a fresh database, since
+    CREATE TABLE IF NOT EXISTS above already includes it there."""
+    columns = {row["name"] for row in conn.execute("PRAGMA table_info(showtime)")}
+    if "ticket_url" not in columns:
+        conn.execute("ALTER TABLE showtime ADD COLUMN ticket_url TEXT")
 
 
 def get_or_create_cinema(
@@ -155,6 +166,7 @@ def upsert_showtime(
     start_time: time,
     format: Optional[str],
     seen_at: datetime,
+    ticket_url: Optional[str] = None,
 ) -> None:
     """Insert a newly-observed showtime, or refresh last_seen_at/status if it
     already exists (whether previously active or stale)."""
@@ -170,16 +182,16 @@ def upsert_showtime(
 
         if row is not None:
             conn.execute(
-                "UPDATE showtime SET last_seen_at = ?, status = 'active' WHERE id = ?",
-                (seen_at.isoformat(), row["id"]),
+                "UPDATE showtime SET last_seen_at = ?, status = 'active', ticket_url = ? WHERE id = ?",
+                (seen_at.isoformat(), ticket_url, row["id"]),
             )
         else:
             conn.execute(
                 """
                 INSERT INTO showtime
                     (cinema_id, movie_title, show_date, start_time, format,
-                     first_seen_at, last_seen_at, status)
-                VALUES (?, ?, ?, ?, ?, ?, ?, 'active')
+                     ticket_url, first_seen_at, last_seen_at, status)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'active')
                 """,
                 (
                     cinema_id,
@@ -187,6 +199,7 @@ def upsert_showtime(
                     show_date.isoformat(),
                     start_time.isoformat(),
                     format,
+                    ticket_url,
                     seen_at.isoformat(),
                     seen_at.isoformat(),
                 ),
@@ -228,6 +241,7 @@ def _row_to_showtime(row: sqlite3.Row) -> Showtime:
         show_date=date.fromisoformat(row["show_date"]),
         start_time=time.fromisoformat(row["start_time"]),
         format=row["format"],
+        ticket_url=row["ticket_url"],
         first_seen_at=datetime.fromisoformat(row["first_seen_at"]),
         last_seen_at=datetime.fromisoformat(row["last_seen_at"]),
         status=row["status"],

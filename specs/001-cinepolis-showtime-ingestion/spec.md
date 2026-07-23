@@ -126,6 +126,11 @@ unreachable or returns no data.
 - How does the system handle a movie title that is formatted or spelled
   inconsistently between ingestion runs for what is otherwise the same
   session?
+- What happens when no ticket-purchase URL can be determined for a
+  showtime at all (e.g., the source's API doesn't expose one, or its
+  construction can't be reverse-engineered)? Per FR-011, the showtime is
+  still captured normally with the URL simply absent — this must never
+  block ingestion of the showtime itself.
 
 ## Clarifications
 
@@ -134,6 +139,7 @@ unreachable or returns no data.
 - Q: What source should the system retrieve Cinepolis McKinney showtimes from? → A: Cinepolis' own website for the McKinney location.
 - Q: How often should the system re-run ingestion to keep showtimes current? → A: A configurable interval, recommended default every 2-4 hours.
 - Q: Should this feature include a user-facing view of ingested showtimes, or is it backend ingestion/storage only? → A: Include a minimal view — a simple listing of ingested showtimes.
+- Q (raised via feature 004's clarification session): feature 004 (showtime notifications) needs a direct ticket-purchase link per showtime, which this feature does not currently capture — should this feature be extended to capture one? → A: Yes — capture a per-showing ticket/booking URL when the source provides one. The exact URL is not yet confirmed to exist in Cinepolis' GraphQL response (the current `showingsForDate` query only returns `id`/`time`/`screenId`/`movie{id,name}`) and Cinepolis' site is Cloudflare-protected, so reverse-engineering the real booking-page URL pattern (e.g., from the showing's `id`) is deferred to this feature's own research/planning update — not resolved in this clarification session.
 
 ## Requirements *(mandatory)*
 
@@ -169,6 +175,13 @@ unreachable or returns no data.
   lists ingested showtimes for the Cinepolis McKinney cinema (movie title,
   date, start time, format), so ingested data can be visually verified
   without inspecting raw storage.
+- **FR-011**: The system MUST capture a direct ticket-purchase URL for
+  each showtime when the source makes one available, so downstream
+  features (e.g., feature 004's notifications) can link the operator
+  straight to booking that showing. If no such URL can be determined for
+  a showtime, the system MUST leave it absent rather than fabricating or
+  guessing one (mirrors FR-003's "when the source provides it" pattern
+  for format).
 
 ### Key Entities
 
@@ -177,9 +190,10 @@ unreachable or returns no data.
   name, location/address, and an identifier future cinemas will also use.
 - **Showtime**: Represents a single scheduled screening at a cinema.
   Attributes include the associated cinema, movie title, date, start time,
-  and format/auditorium type. Each showtime must be distinguishable from
-  others for the same movie on the same day (e.g., by date + start time +
-  format).
+  format/auditorium type, and (per FR-011) an optional direct
+  ticket-purchase URL when the source provides one. Each showtime must be
+  distinguishable from others for the same movie on the same day (e.g.,
+  by date + start time + format).
 - **Ingestion Run**: Represents one execution of the showtime-fetching
   process. Attributes include start time, outcome (success/failure), and
   count of showtimes captured or changed.
@@ -202,9 +216,12 @@ unreachable or returns no data.
 - **SC-006**: The operator can view the current list of ingested showtimes
   for the Cinepolis McKinney cinema, with correct movie title, date, start
   time, and format, without needing to inspect raw storage.
-- **SC-005**: The pipeline built for this single alpha cinema requires no
-  structural redesign when a second cinema is later added (only additional
-  configuration/data).
+- **SC-005**: The pipeline's data model requires no redesign when a second
+  cinema is later added — `Showtime`/`IngestionRun` are already scoped
+  per-`Cinema`. Onboarding a new cinema does require a small, contained
+  code change to `main.py`'s bootstrap (which currently hardcodes one
+  `Cinema` row), not a redesign of the ingestion/storage/view logic
+  itself.
 
 ## Assumptions
 

@@ -66,6 +66,12 @@ translate directly into the Unraid Docker UI's variable/path fields.
    scheduled run, or restart the container) and confirm the showtime
    count and listing are unchanged — no duplicates appear (spec SC-002).
 
+5. **Confirm ticket URLs are captured** (spec FR-011) — query the
+   `showtime` table directly (or check logs) and confirm `ticket_url` is
+   populated as `https://www.cinepolisusa.com/mckinney/checkout/seats/{id}`
+   for active showtimes; open one in a browser and confirm it lands on
+   that showing's real seat-selection page.
+
 See [data-model.md](./data-model.md) for the underlying schema and
 [contracts/web-view.md](./contracts/web-view.md) for the exact view
 behavior being validated.

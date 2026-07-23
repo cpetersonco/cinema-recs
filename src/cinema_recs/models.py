@@ -20,6 +20,7 @@ class Showtime:
     show_date: date
     start_time: time
     format: Optional[str]
+    ticket_url: Optional[str]
     first_seen_at: datetime
     last_seen_at: datetime
     status: str  # "active" or "stale"

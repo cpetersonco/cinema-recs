@@ -4,7 +4,14 @@ import pytest
 
 from cinema_recs import storage
 from cinema_recs.ingest import run_ingestion
-from cinema_recs.scraper import ScrapedShowtime
+from cinema_recs.scraper import ScrapedShowtime, ScrapeResult
+
+
+def _result(showtimes, reported_count=None):
+    return ScrapeResult(
+        showtimes=showtimes,
+        reported_count=reported_count if reported_count is not None else len(showtimes),
+    )
 
 
 @pytest.fixture
@@ -23,14 +30,14 @@ def cinema(db_path):
 
 def test_run_ingestion_reconciles_removed_showtime(db_path, cinema, monkeypatch):
     first_run_showtimes = [
-        ScrapedShowtime("Movie A", date(2026, 8, 1), time(18, 0), "Standard"),
-        ScrapedShowtime("Movie B", date(2026, 8, 1), time(20, 0), None),
+        ScrapedShowtime("Movie A", date(2026, 8, 1), time(18, 0), "Standard", "https://example.com/tickets/1"),
+        ScrapedShowtime("Movie B", date(2026, 8, 1), time(20, 0), None, None),
     ]
     second_run_showtimes = [
-        ScrapedShowtime("Movie A", date(2026, 8, 1), time(18, 0), "Standard"),
+        ScrapedShowtime("Movie A", date(2026, 8, 1), time(18, 0), "Standard", "https://example.com/tickets/1"),
     ]
 
-    calls = iter([first_run_showtimes, second_run_showtimes])
+    calls = iter([_result(first_run_showtimes), _result(second_run_showtimes)])
     monkeypatch.setattr(
         "cinema_recs.ingest.scrape_showtimes", lambda url: next(calls)
     )
@@ -45,8 +52,8 @@ def test_run_ingestion_reconciles_removed_showtime(db_path, cinema, monkeypatch)
 
 
 def test_run_ingestion_reactivates_reappearing_showtime(db_path, cinema, monkeypatch):
-    showtime = ScrapedShowtime("Movie A", date(2026, 8, 1), time(18, 0), "Standard")
-    calls = iter([[showtime], [], [showtime]])
+    showtime = ScrapedShowtime("Movie A", date(2026, 8, 1), time(18, 0), "Standard", "https://example.com/tickets/1")
+    calls = iter([_result([showtime]), _result([]), _result([showtime])])
     monkeypatch.setattr(
         "cinema_recs.ingest.scrape_showtimes", lambda url: next(calls)
     )
@@ -59,6 +66,19 @@ def test_run_ingestion_reactivates_reappearing_showtime(db_path, cinema, monkeyp
     active = storage.list_active_showtimes(db_path, cinema.id)
     assert len(active) == 1
     assert active[0].status == "active"
+
+
+def test_run_ingestion_persists_ticket_url_from_scraped_showtime(db_path, cinema, monkeypatch):
+    showtime = ScrapedShowtime(
+        "Movie A", date(2026, 8, 1), time(18, 0), "Standard",
+        "https://www.cinepolisusa.com/mckinney/checkout/seats/999",
+    )
+    monkeypatch.setattr("cinema_recs.ingest.scrape_showtimes", lambda url: _result([showtime]))
+
+    run_ingestion(db_path, cinema)
+
+    active = storage.list_active_showtimes(db_path, cinema.id)
+    assert active[0].ticket_url == "https://www.cinepolisusa.com/mckinney/checkout/seats/999"
 
 
 def test_run_ingestion_records_failure_on_scrape_error(db_path, cinema, monkeypatch):
@@ -75,9 +95,36 @@ def test_run_ingestion_records_failure_on_scrape_error(db_path, cinema, monkeypa
 
 
 def test_run_ingestion_distinguishes_zero_found_from_failure(db_path, cinema, monkeypatch):
-    monkeypatch.setattr("cinema_recs.ingest.scrape_showtimes", lambda url: [])
+    monkeypatch.setattr("cinema_recs.ingest.scrape_showtimes", lambda url: _result([]))
 
     run = run_ingestion(db_path, cinema)
 
     assert run.outcome == "success"
     assert run.showtimes_captured == 0
+
+
+def test_run_ingestion_reports_partial_when_entries_are_skipped(db_path, cinema, monkeypatch):
+    showtime = ScrapedShowtime("Movie A", date(2026, 8, 1), time(18, 0), "Standard", None)
+    # The source's GraphQL response reported 3 showings, but only 1 survived
+    # parsing (e.g. 2 had missing titles/unparseable times, per
+    # parse_showings_response's skip logic) — a genuine partial result.
+    monkeypatch.setattr(
+        "cinema_recs.ingest.scrape_showtimes", lambda url: _result([showtime], reported_count=3)
+    )
+
+    run = run_ingestion(db_path, cinema)
+
+    assert run.outcome == "partial"
+    assert run.showtimes_captured == 1
+    assert "2 showing(s) skipped" in run.error_message
+
+
+def test_run_ingestion_success_when_reported_count_matches(db_path, cinema, monkeypatch):
+    showtime = ScrapedShowtime("Movie A", date(2026, 8, 1), time(18, 0), "Standard", None)
+    monkeypatch.setattr(
+        "cinema_recs.ingest.scrape_showtimes", lambda url: _result([showtime], reported_count=1)
+    )
+
+    run = run_ingestion(db_path, cinema)
+
+    assert run.outcome == "success"

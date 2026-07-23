@@ -159,3 +159,16 @@ def test_health_shows_failure_distinct_from_zero_success(client, config, cinema)
     assert response.status_code == 200
     assert b"FAILURE" in response.data
     assert b"source unreachable" in response.data
+
+
+def test_health_shows_partial_outcome_distinct_from_success(client, config, cinema):
+    storage.record_ingestion_run(
+        config.db_path, cinema.id, datetime(2026, 8, 1, 10, 0, 0), datetime(2026, 8, 1, 10, 0, 5),
+        outcome="partial", showtimes_captured=4, error_message="1 showing(s) skipped (missing title or unparseable time)",
+    )
+
+    response = client.get("/health")
+
+    assert response.status_code == 200
+    assert b"PARTIAL" in response.data
+    assert b"1 showing(s) skipped" in response.data

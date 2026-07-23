@@ -16,6 +16,14 @@ listing view plus ingestion-run health so the pipeline can be trusted
 before more cinemas are added. The whole feature runs as a single Docker
 container suitable for Unraid, storing data in SQLite on a mounted volume.
 
+**Amendment (2026-07-22, via feature 004's clarification session)**: Also
+capture a per-showing ticket-purchase URL (FR-011), needed by feature
+004's notifications. Confirmed live that this requires no new network
+call: the URL is a string template built from the `id` field the GraphQL
+response already includes (`.../checkout/seats/{id}`, confirmed by
+observing the site's real checkout-flow navigation) — see research.md's
+new decision section.
+
 ## Technical Context
 
 **Language/Version**: Python 3.11+
@@ -121,5 +129,6 @@ Unraid Runtime Compatibility principle.
 
 | Violation | Why Needed | Simpler Alternative Rejected Because |
 |---|---|---|
-| Playwright + `playwright-stealth` (headless Chromium with evasions) instead of plain `requests` | Confirmed directly against the live site: plain `requests` AND default headless Playwright both get a Cloudflare block page; stealth evasions + a realistic user-agent were required to get real content | Plain `requests` and default headless Playwright were both tried against the live site and returned an HTTP block/interstitial, not showtime data — not viable regardless of added complexity |
+| Playwright + `playwright-stealth` (headless Chromium with evasions) instead of plain `requests` | Confirmed directly against the live site: plain `requests` AND default headless Playwright both get a Cloudflare block page; stealth evasions + a realistic user-agent were required to get real content. **Update (2026-07-22)**: A later investigation (see project memory `project-curl-cffi-could-replace-playwright`, prompted by feature 003's Letterboxd rate-limiting fix) found `curl_cffi` with TLS/JA3 impersonation *can* call the GraphQL endpoint directly with no browser at all — confirmed live, including cold sessions with no cookies. This justification remains accurate for what was tried at the time this feature was built, but Playwright is no longer strictly necessary to retrieve this data. It's kept for now as a deliberate, deferred simplification (not yet implemented), not because it's still the only viable mechanism. | Plain `requests` and default headless Playwright were both tried against the live site and returned an HTTP block/interstitial, not showtime data — not viable regardless of added complexity |
 | Calling Cinepolis' undocumented GraphQL API (with hardcoded `site-id`/`circuit-id` headers for McKinney) instead of parsing HTML | Confirmed the site is a Vue/Quasar SPA with no showtime markup in server-rendered HTML at all — the data only exists via this API at runtime, so there is no DOM to scrape | DOM scraping was the original plan but is not viable — there is nothing in the HTML to select; the API is the only real source of the data. Risk accepted: this is an undocumented internal API that could change without notice, unlike a public/versioned API |
+| Constructing `ticket_url` from an undocumented client-route pattern (`.../checkout/seats/{id}`) instead of an API-provided URL | Confirmed the GraphQL API exposes no URL-shaped field at all (schema-probed, introspection disabled); the pattern was instead confirmed by observing the site's real "buy tickets" navigation across 3 separate showings | No API-provided alternative exists to fall back to. Risk accepted, same category as the GraphQL API itself: an undocumented pattern that could silently break if Cinepolis changes its routing — no live validation call is made per showing (would multiply Playwright page loads well past the ingestion performance budget), so a broken URL would only surface via a 404 when the operator actually clicks it |
