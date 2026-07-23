@@ -56,6 +56,83 @@ def test_listing_shows_ingested_showtimes(client, config, cinema):
     assert b"Standard" in response.data
 
 
+def test_listing_consolidates_multiple_showtimes_for_same_movie_at_same_venue(client, config, cinema):
+    # Three showings of the same movie at the same venue on different
+    # dates - the listing must render exactly one row for it (feature
+    # 010 spec User Story 1), showing the earliest one (Aug 1).
+    storage.upsert_showtime(
+        config.db_path, cinema.id, "Consolidated Movie", date(2026, 8, 3), time(21, 0),
+        "Standard", datetime(2026, 8, 1, 10, 0, 0),
+    )
+    storage.upsert_showtime(
+        config.db_path, cinema.id, "Consolidated Movie", date(2026, 8, 1), time(18, 30),
+        "Standard", datetime(2026, 8, 1, 10, 0, 0),
+    )
+    storage.upsert_showtime(
+        config.db_path, cinema.id, "Consolidated Movie", date(2026, 8, 2), time(19, 45),
+        "Standard", datetime(2026, 8, 1, 10, 0, 0),
+    )
+
+    response = client.get("/")
+
+    assert response.status_code == 200
+    assert response.data.count(b"Consolidated Movie") == 1
+    assert b"2026-08-01" in response.data
+    assert b"2026-08-03" not in response.data
+
+
+def test_listing_shows_one_row_per_venue_for_movie_playing_at_multiple_venues(config):
+    storage.init_schema(config.db_path)
+    cinema_a = storage.get_or_create_cinema(
+        config.db_path, "Cinepolis McKinney", "McKinney, TX", "https://example.com/a"
+    )
+    cinema_b = storage.get_or_create_cinema(
+        config.db_path, "Texas Theatre", "Dallas, TX", "https://example.com/b"
+    )
+    storage.upsert_showtime(
+        config.db_path, cinema_a.id, "Shared Movie", date(2026, 8, 1), time(18, 30),
+        "Standard", datetime(2026, 8, 1, 10, 0, 0),
+    )
+    storage.upsert_showtime(
+        config.db_path, cinema_b.id, "Shared Movie", date(2026, 8, 2), time(19, 0),
+        None, datetime(2026, 8, 1, 10, 0, 0),
+    )
+
+    app = create_app(config, [cinema_a, cinema_b])
+    app.testing = True
+    response = app.test_client().get("/")
+
+    assert response.status_code == 200
+    # One row under each venue's section - two total, not merged into one.
+    assert response.data.count(b"Shared Movie") == 2
+
+
+def test_listing_shows_ticket_link_when_present(client, config, cinema):
+    storage.upsert_showtime(
+        config.db_path, cinema.id, "Ticketed Movie", date(2026, 8, 1), time(18, 30),
+        "Standard", datetime(2026, 8, 1, 10, 0, 0),
+        ticket_url="https://example.com/tickets/123",
+    )
+
+    response = client.get("/")
+
+    assert response.status_code == 200
+    assert b'href="https://example.com/tickets/123"' in response.data
+
+
+def test_listing_shows_dash_when_ticket_link_absent(client, config, cinema):
+    storage.upsert_showtime(
+        config.db_path, cinema.id, "No Ticket Movie", date(2026, 8, 1), time(18, 30),
+        "Standard", datetime(2026, 8, 1, 10, 0, 0),
+    )
+
+    response = client.get("/")
+
+    assert response.status_code == 200
+    assert b"No Ticket Movie" in response.data
+    assert b'href="None"' not in response.data
+
+
 def test_health_shows_no_runs_yet(client):
     response = client.get("/health")
     assert response.status_code == 200
@@ -103,13 +180,74 @@ def test_listing_shows_enriched_fields_for_matched_movie(client, config, cinema)
         tmdb_title="The Great Adventure", genres="Action, Adventure", average_rating=7.5,
         poster_path="/poster.jpg",
     )
+    # The Rating column now shows the Letterboxd rating (linked to
+    # Letterboxd), not TMDB's average_rating above - feature 010 spec
+    # Assumptions/FR-005. TMDB's rating is still stored (used elsewhere)
+    # but no longer displayed as "Rating".
+    storage.upsert_letterboxd_movie_data(
+        config.db_path, "The Great Adventure", tmdb_id=42,
+        letterboxd_slug="the-great-adventure", average_rating=4.2,
+    )
 
     response = client.get("/")
 
     assert response.status_code == 200
     assert b"Action, Adventure" in response.data
-    assert b"7.5" in response.data
     assert b"/poster.jpg" in response.data
+    assert b'href="https://letterboxd.com/film/the-great-adventure/"' in response.data
+    assert b"4.2" in response.data
+
+
+def test_listing_shows_letterboxd_rating_link_when_available(client, config, cinema):
+    storage.upsert_showtime(
+        config.db_path, cinema.id, "Rated Movie", date(2026, 8, 1), time(18, 30),
+        "Standard", datetime(2026, 8, 1, 10, 0, 0),
+    )
+    storage.upsert_movie_metadata(config.db_path, "Rated Movie", match_status="matched", tmdb_id=7)
+    storage.upsert_letterboxd_movie_data(
+        config.db_path, "Rated Movie", tmdb_id=7,
+        letterboxd_slug="rated-movie", average_rating=3.8,
+    )
+
+    response = client.get("/")
+
+    assert response.status_code == 200
+    assert b'<a href="https://letterboxd.com/film/rated-movie/">3.8</a>' in response.data
+
+
+def test_listing_shows_dash_when_no_letterboxd_match(client, config, cinema):
+    storage.upsert_showtime(
+        config.db_path, cinema.id, "Unrated Movie", date(2026, 8, 1), time(18, 30),
+        "Standard", datetime(2026, 8, 1, 10, 0, 0),
+    )
+    storage.upsert_movie_metadata(config.db_path, "Unrated Movie", match_status="matched", tmdb_id=8)
+    # No upsert_letterboxd_movie_data call at all - not yet enriched.
+
+    response = client.get("/")
+
+    assert response.status_code == 200
+    assert b"Unrated Movie" in response.data
+    assert b"letterboxd.com" not in response.data
+
+
+def test_listing_shows_dash_when_letterboxd_slug_resolved_but_rating_missing(client, config, cinema):
+    storage.upsert_showtime(
+        config.db_path, cinema.id, "Slug Only Movie", date(2026, 8, 1), time(18, 30),
+        "Standard", datetime(2026, 8, 1, 10, 0, 0),
+    )
+    storage.upsert_movie_metadata(config.db_path, "Slug Only Movie", match_status="matched", tmdb_id=9)
+    # Slug resolved but the rating fetch itself failed/hasn't completed
+    # (research.md §3) - must not show a link with no number.
+    storage.upsert_letterboxd_movie_data(
+        config.db_path, "Slug Only Movie", tmdb_id=9,
+        letterboxd_slug="slug-only-movie", average_rating=None,
+    )
+
+    response = client.get("/")
+
+    assert response.status_code == 200
+    assert b"Slug Only Movie" in response.data
+    assert b"letterboxd.com" not in response.data
 
 
 def test_listing_renders_normally_for_unmatched_movie(client, config, cinema):
