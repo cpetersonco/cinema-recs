@@ -274,6 +274,22 @@ def ensure_angelika_dallas_cinema(db_path: str) -> Cinema:
     )
 
 
+def ensure_amc_stonebriar_cinema(db_path: str) -> Cinema:
+    from cinema_recs.config import (
+        AMC_STONEBRIAR_DEFAULT_URL,
+        AMC_STONEBRIAR_LOCATION,
+        AMC_STONEBRIAR_NAME,
+    )
+
+    return get_or_create_cinema(
+        db_path,
+        name=AMC_STONEBRIAR_NAME,
+        location=AMC_STONEBRIAR_LOCATION,
+        source_url=AMC_STONEBRIAR_DEFAULT_URL,
+        source_type="amc_stonebriar",
+    )
+
+
 def upsert_showtime(
     db_path: str,
     cinema_id: int,
