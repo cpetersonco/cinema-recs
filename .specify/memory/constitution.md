@@ -1,15 +1,12 @@
 <!--
 Sync Impact Report
-Version change: (none) → 1.0.0
-Modified principles: N/A (initial ratification)
-Added sections:
-  - Core Principles: I. Python-First, II. Docker-Native Deployment,
-    III. Unraid Runtime Compatibility, IV. Simplicity & Solo-Maintainer Ergonomics,
-    V. Observability for Self-Hosting
-  - Technology Constraints
-  - Development Workflow
-  - Governance
-Removed sections: none (template placeholders replaced)
+Version change: 1.0.0 → 1.0.1
+Modified principles: none
+Added sections: none
+Modified sections:
+  - Development Workflow: documented the graphify knowledge graph and its
+    .specify/extensions.yml hooks (before_plan, after_implement)
+Removed sections: none
 Templates requiring updates:
   - .specify/templates/plan-template.md ✅ no changes needed (Constitution Check section reads gates dynamically)
   - .specify/templates/spec-template.md ✅ no changes needed (no constitution-specific placeholders)
@@ -101,6 +98,11 @@ primary — often only — debugging tool available.
   (parsing, recommendation logic, external API integration) but are not
   mandatory for trivial glue code, consistent with the Simplicity
   principle.
+- The repo maintains a `graphify` knowledge graph (`graphify-out/`, gitignored
+  and rebuilt locally) for architecture/dependency navigation. Spec Kit hooks
+  registered in `.specify/extensions.yml` consult it before planning
+  (`before_plan`) and refresh it after implementation (`after_implement`,
+  no API cost via `graphify update .`).
 
 ## Governance
 
@@ -119,4 +121,4 @@ against these principles (see each template's "Constitution Check" or
 equivalent section); deviations must be explicitly justified or the
 approach revised.
 
-**Version**: 1.0.0 | **Ratified**: 2026-07-22 | **Last Amended**: 2026-07-22
+**Version**: 1.0.1 | **Ratified**: 2026-07-22 | **Last Amended**: 2026-07-22

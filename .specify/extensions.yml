@@ -1,0 +1,22 @@
+hooks:
+  before_plan:
+    - extension: graphify
+      command: graphify
+      description: "Consult the graphify knowledge graph for architecture/dependency context before planning"
+      prompt: >
+        If graphify-out/graph.json exists, run `graphify query "<feature area>"`
+        (or `graphify explain "<concept>"`) to pull relevant architecture and
+        dependency context before writing the plan.
+      optional: true
+      enabled: true
+
+  after_implement:
+    - extension: graphify
+      command: graphify
+      description: "Refresh the graphify knowledge graph after implementing tasks"
+      prompt: >
+        Run `graphify update .` to incrementally refresh the knowledge graph
+        now that tasks.md has been implemented. This is AST-only and does
+        not require an API key or incur LLM cost.
+      optional: false
+      enabled: true
