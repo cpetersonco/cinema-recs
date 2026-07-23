@@ -8,7 +8,12 @@ from cinema_recs.logging_setup import configure_logging
 from cinema_recs.notify import run_notifications
 from cinema_recs.recommend import run_recommendation_evaluation
 from cinema_recs.scheduler import start_scheduler
-from cinema_recs.storage import ensure_texas_theatre_cinema, get_or_create_cinema, init_schema
+from cinema_recs.storage import (
+    ensure_angelika_dallas_cinema,
+    ensure_texas_theatre_cinema,
+    get_or_create_cinema,
+    init_schema,
+)
 from cinema_recs.web import create_app
 
 logger = logging.getLogger(__name__)
@@ -25,7 +30,8 @@ def bootstrap():
         config.db_path, CINEMA_NAME, CINEMA_LOCATION, config.source_url
     )
     texas_theatre = ensure_texas_theatre_cinema(config.db_path)
-    cinemas = [cinepolis, texas_theatre]
+    angelika_dallas = ensure_angelika_dallas_cinema(config.db_path)
+    cinemas = [cinepolis, texas_theatre, angelika_dallas]
     return config, cinemas
 
 

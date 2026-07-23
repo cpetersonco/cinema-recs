@@ -8,6 +8,7 @@ from zoneinfo import ZoneInfo
 
 from bs4 import BeautifulSoup
 from playwright.sync_api import Error as PlaywrightError
+from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
 from playwright.sync_api import sync_playwright
 from playwright_stealth import Stealth
 
@@ -434,6 +435,162 @@ def scrape_texas_theatre_showtimes(
     showtimes, reported_count = parse_texas_theatre_html(html, base_url=source_url)
     logger.info(
         "Texas Theatre scrape complete: %d showtime(s) parsed out of %d reported events",
+        len(showtimes), reported_count,
+    )
+    return ScrapeResult(showtimes=showtimes, reported_count=reported_count)
+
+
+# --- Angelika Film Center Dallas Showtime Source Scraper ---
+
+# Angelika Film Center Dallas is one brand on Reading Cinemas' shared multi-brand
+# React SPA/booking platform (also serves readingcinemas.com and
+# consolidatedtheatres.com). The site's own page has no server-rendered showtime
+# markup — it fetches everything from a JSON API at production-api.readingcinemas.com,
+# gated by a WAF/CORS policy that rejects hand-crafted requests (plain curl and even
+# a same-page injected fetch() both get rejected, unlike Cinepolis' GraphQL API which
+# only needed two custom headers). Rather than reverse-engineer that auth scheme, this
+# fetch lets the real page load normally and captures the *response* to its own
+# authenticated request via Playwright's network layer (page.expect_response), which
+# is unaffected by the page-script CORS restrictions that blocked a replayed request.
+# cinemaId, endpoint, and response shape below were confirmed by inspecting live
+# network traffic against https://angelikafilmcenter.com/dallas (see research.md §1).
+ANGELIKA_DALLAS_CINEMA_ID = "0000000009"
+
+# Confirmed via the site's own client-side router (route pattern
+# "/cinemas/:cinemaId/sessions/:sessionId/:movieId"); the films API response includes
+# no ticket URL field directly, so this is built from the session's own `id` and the
+# movie's numeric `slug`, both already present in every showtime entry.
+ANGELIKA_TICKET_URL_TEMPLATE = (
+    f"https://angelikafilmcenter.com/cinemas/{ANGELIKA_DALLAS_CINEMA_ID}"
+    "/sessions/{session_id}/{movie_slug}"
+)
+
+# The API's date_time field (e.g. "2026-07-23T09:00:00-05") carries a UTC offset with
+# no minutes component, which datetime.fromisoformat() rejects; normalize it to
+# "-05:00" before parsing.
+_ANGELIKA_OFFSET_FIX = re.compile(r"([+-]\d{2})$")
+
+
+def _parse_angelika_datetime(raw_date_time: str) -> datetime | None:
+    normalized = _ANGELIKA_OFFSET_FIX.sub(r"\1:00", raw_date_time)
+    try:
+        return datetime.fromisoformat(normalized)
+    except ValueError:
+        logger.warning(
+            "Skipping Angelika Dallas showtime with unparseable date_time %r", raw_date_time
+        )
+        return None
+
+
+def fetch_angelika_dallas_films(
+    source_url: str = "https://angelikafilmcenter.com/dallas", timeout_ms: int = 30_000
+) -> dict[str, Any]:
+    """Load the Angelika Dallas page and capture the JSON response its own
+    front-end receives from the `/films` showtimes API, rather than replaying
+    the request ourselves (see module-level comment above)."""
+    last_error: Exception | None = None
+    for attempt in range(1, MAX_FETCH_ATTEMPTS + 1):
+        try:
+            with sync_playwright() as p:
+                browser = p.chromium.launch(headless=True)
+                try:
+                    context = browser.new_context(user_agent=REALISTIC_USER_AGENT)
+                    Stealth().apply_stealth_sync(context)
+                    page = context.new_page()
+                    try:
+                        with page.expect_response(
+                            lambda response: "/films" in response.url
+                            and f"cinemaId={ANGELIKA_DALLAS_CINEMA_ID}" in response.url,
+                            timeout=timeout_ms,
+                        ) as response_info:
+                            page.goto(source_url, wait_until="domcontentloaded", timeout=timeout_ms)
+                    except PlaywrightTimeoutError as exc:
+                        if looks_blocked(page.content()):
+                            raise BlockedError(
+                                "Source appears to have served a block/challenge page: "
+                                f"{source_url}"
+                            ) from exc
+                        raise
+
+                    response = response_info.value
+                    if response.status != 200:
+                        raise RuntimeError(
+                            f"Angelika Dallas films request failed with HTTP {response.status}"
+                        )
+                    return response.json()
+                finally:
+                    browser.close()
+        except (PlaywrightError, PlaywrightTimeoutError, BlockedError, RuntimeError) as exc:
+            last_error = exc
+            logger.warning(
+                "Fetch attempt %d/%d failed for %s: %s",
+                attempt, MAX_FETCH_ATTEMPTS, source_url, exc,
+            )
+            if attempt < MAX_FETCH_ATTEMPTS:
+                time_module.sleep(RETRY_BACKOFF_SECONDS)
+
+    assert last_error is not None
+    raise last_error
+
+
+def parse_angelika_dallas_films(payload: dict[str, Any]) -> tuple[list[ScrapedShowtime], int]:
+    """Map a `/films` API response into showtime records.
+
+    The endpoint returns films only (no non-film venue events mixed in, unlike
+    Texas Theatre's calendar), so no non-film classification/filtering is
+    needed here (spec FR-008 is satisfied by the source itself).
+    """
+    showtimes: list[ScrapedShowtime] = []
+    reported_count = 0
+
+    movies = payload.get("nowShowing", {}).get("data", {}).get("movies", [])
+
+    for movie in movies:
+        title = (movie.get("name") or "").strip()
+        movie_slug = movie.get("slug")
+
+        for showdate in movie.get("showdates", []):
+            for showtype in showdate.get("showtypes", []):
+                fmt = (showtype.get("type") or "").strip() or None
+
+                for session in showtype.get("showtimes", []):
+                    reported_count += 1
+
+                    raw_date_time = session.get("date_time")
+                    parsed = _parse_angelika_datetime(raw_date_time) if raw_date_time else None
+                    if not title or parsed is None:
+                        continue
+
+                    session_id = session.get("id")
+                    ticket_url = (
+                        ANGELIKA_TICKET_URL_TEMPLATE.format(
+                            session_id=session_id, movie_slug=movie_slug
+                        )
+                        if session_id and movie_slug
+                        else None
+                    )
+
+                    showtimes.append(
+                        ScrapedShowtime(
+                            movie_title=title,
+                            show_date=parsed.date(),
+                            start_time=parsed.time(),
+                            format=fmt,
+                            ticket_url=ticket_url,
+                        )
+                    )
+
+    return showtimes, reported_count
+
+
+def scrape_angelika_dallas_showtimes(
+    source_url: str = "https://angelikafilmcenter.com/dallas"
+) -> ScrapeResult:
+    logger.info("Starting Angelika Dallas showtime scrape for %s", source_url)
+    payload = fetch_angelika_dallas_films(source_url)
+    showtimes, reported_count = parse_angelika_dallas_films(payload)
+    logger.info(
+        "Angelika Dallas scrape complete: %d showtime(s) parsed out of %d reported sessions",
         len(showtimes), reported_count,
     )
     return ScrapeResult(showtimes=showtimes, reported_count=reported_count)

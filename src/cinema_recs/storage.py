@@ -214,6 +214,21 @@ def ensure_texas_theatre_cinema(db_path: str) -> Cinema:
     )
 
 
+def ensure_angelika_dallas_cinema(db_path: str) -> Cinema:
+    from cinema_recs.config import (
+        ANGELIKA_DALLAS_DEFAULT_URL,
+        ANGELIKA_DALLAS_LOCATION,
+        ANGELIKA_DALLAS_NAME,
+    )
+
+    return get_or_create_cinema(
+        db_path,
+        name=ANGELIKA_DALLAS_NAME,
+        location=ANGELIKA_DALLAS_LOCATION,
+        source_url=ANGELIKA_DALLAS_DEFAULT_URL,
+    )
+
+
 def upsert_showtime(
     db_path: str,
     cinema_id: int,

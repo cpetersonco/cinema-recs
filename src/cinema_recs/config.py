@@ -10,6 +10,10 @@ TEXAS_THEATRE_NAME = "Texas Theatre"
 TEXAS_THEATRE_LOCATION = "Oak Cliff, Dallas, TX"
 TEXAS_THEATRE_DEFAULT_URL = "https://thetexastheatre.com/calendar"
 
+ANGELIKA_DALLAS_NAME = "Angelika Film Center Dallas"
+ANGELIKA_DALLAS_LOCATION = "Dallas, TX"
+ANGELIKA_DALLAS_DEFAULT_URL = "https://angelikafilmcenter.com/dallas"
+
 
 @dataclass(frozen=True)
 class Config:
