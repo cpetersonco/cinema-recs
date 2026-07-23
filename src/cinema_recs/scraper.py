@@ -260,6 +260,24 @@ def extract_format(text: str) -> str | None:
     return None
 
 
+# Non-film venue events the Texas Theatre calendar also lists alongside film
+# screenings (spec FR-008, Edge Cases, Assumptions) — excluded so they don't
+# pollute movie-recommendation data with non-movie titles.
+NON_FILM_EVENT_KEYWORDS = re.compile(
+    r"\b("
+    r"live music|concert|comedy|stand-?up|karaoke|trivia|drag show|burlesque|"
+    r"book club|lecture|panel discussion|live podcast|open mic|dj set"
+    r")\b",
+    re.IGNORECASE,
+)
+
+
+def is_non_film_event(text: str) -> bool:
+    if not text:
+        return False
+    return bool(NON_FILM_EVENT_KEYWORDS.search(text))
+
+
 def _parse_date_and_time_from_text(text: str) -> tuple[date | None, time | None]:
     import re
 
@@ -333,7 +351,8 @@ def parse_texas_theatre_html(
 
     event_blocks = [
         b for b in raw_blocks
-        if re.search(r"<h[1-6]", b, re.IGNORECASE) or "/event/" in b.lower()
+        if (re.search(r"<h[1-6]", b, re.IGNORECASE) or "/event/" in b.lower())
+        and not is_non_film_event(b)  # FR-008: exclude non-film venue events
     ]
 
     if not event_blocks:
@@ -342,6 +361,13 @@ def parse_texas_theatre_html(
             html,
             re.DOTALL | re.IGNORECASE,
         )
+        # FR-008: exclude non-film venue events (live music, comedy, etc.)
+        # before they're counted as reported/skipped screenings.
+        event_blocks = [
+            (href, block_content)
+            for href, block_content in event_blocks
+            if not is_non_film_event(block_content)
+        ]
         if event_blocks:
             reported_count = len(event_blocks)
             for href, block_content in event_blocks:

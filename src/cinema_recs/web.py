@@ -13,19 +13,20 @@ TMDB_POSTER_BASE_URL = "https://image.tmdb.org/t/p/w200"
 
 LISTING_TEMPLATE = """
 <!doctype html>
-<title>{{ cinema.name }} Showtimes</title>
-<h1>{{ cinema.name }} Showtimes</h1>
-{% if showtimes %}
+<title>Showtimes</title>
+{% for section in cinema_sections %}
+<h1>{{ section.cinema.name }} Showtimes</h1>
+{% if section.showtimes %}
 <table border="1" cellpadding="6">
   <tr><th>Movie</th><th>Date</th><th>Start Time</th><th>Format</th><th>Genre</th><th>Rating</th><th>Poster</th><th>Recommended</th></tr>
-  {% for s in showtimes %}
-  {% set recommendation = movie_recommendation_by_title.get(s.movie_title) %}
+  {% for s in section.showtimes %}
+  {% set recommendation = section.recommendations.get(s.movie_title) %}
   <tr{% if recommendation and recommendation.is_recommended %} style="background-color: #fff3cd;"{% endif %}>
     <td>{{ s.movie_title }}</td>
     <td>{{ s.show_date }}</td>
     <td>{{ s.start_time }}</td>
     <td>{{ s.format or "—" }}</td>
-    {% set metadata = movie_metadata_by_title.get(s.movie_title) %}
+    {% set metadata = section.metadata.get(s.movie_title) %}
     {% if metadata and metadata.match_status == "matched" %}
     <td>{{ metadata.genres or "—" }}</td>
     <td>{{ metadata.average_rating or "—" }}</td>
@@ -54,13 +55,16 @@ LISTING_TEMPLATE = """
 {% else %}
 <p>No showtimes ingested yet.</p>
 {% endif %}
+{% endfor %}
 <p><a href="/health">Ingestion health</a></p>
 """
 
 HEALTH_TEMPLATE = """
 <!doctype html>
 <title>Ingestion Health</title>
-<h1>Ingestion Health</h1>
+{% for section in cinema_runs %}
+<h1>{{ section.cinema.name }} Ingestion Health</h1>
+{% set run = section.run %}
 {% if run %}
 <p>Outcome: <strong>{{ run.outcome|upper }}</strong></p>
 <p>Started: {{ run.started_at }}</p>
@@ -72,35 +76,46 @@ HEALTH_TEMPLATE = """
 {% else %}
 <p>No ingestion runs have completed yet.</p>
 {% endif %}
+{% endfor %}
 <p><a href="/">Back to listing</a></p>
 """
 
 
-def create_app(config: Config, cinema: Cinema) -> Flask:
+def create_app(config: Config, cinemas: list[Cinema]) -> Flask:
     app = Flask(__name__)
 
     @app.get("/")
     def listing():
-        showtimes = list_active_showtimes(config.db_path, cinema.id)
-        distinct_titles = {s.movie_title for s in showtimes}
-        movie_metadata_by_title = {
-            title: get_movie_metadata(config.db_path, title) for title in distinct_titles
-        }
-        movie_recommendation_by_title = {
-            title: get_movie_recommendation(config.db_path, title) for title in distinct_titles
-        }
+        cinema_sections = []
+        for cinema in cinemas:
+            showtimes = list_active_showtimes(config.db_path, cinema.id)
+            distinct_titles = {s.movie_title for s in showtimes}
+            cinema_sections.append(
+                {
+                    "cinema": cinema,
+                    "showtimes": showtimes,
+                    "metadata": {
+                        title: get_movie_metadata(config.db_path, title)
+                        for title in distinct_titles
+                    },
+                    "recommendations": {
+                        title: get_movie_recommendation(config.db_path, title)
+                        for title in distinct_titles
+                    },
+                }
+            )
         return render_template_string(
             LISTING_TEMPLATE,
-            cinema=cinema,
-            showtimes=showtimes,
-            movie_metadata_by_title=movie_metadata_by_title,
-            movie_recommendation_by_title=movie_recommendation_by_title,
+            cinema_sections=cinema_sections,
             poster_base_url=TMDB_POSTER_BASE_URL,
         )
 
     @app.get("/health")
     def health():
-        run = get_latest_ingestion_run(config.db_path, cinema.id)
-        return render_template_string(HEALTH_TEMPLATE, run=run)
+        cinema_runs = [
+            {"cinema": cinema, "run": get_latest_ingestion_run(config.db_path, cinema.id)}
+            for cinema in cinemas
+        ]
+        return render_template_string(HEALTH_TEMPLATE, cinema_runs=cinema_runs)
 
     return app

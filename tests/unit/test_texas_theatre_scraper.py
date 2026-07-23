@@ -2,8 +2,34 @@ from datetime import date, time
 
 from cinema_recs.scraper import (
     extract_format,
+    is_non_film_event,
     parse_texas_theatre_html,
 )
+
+SAMPLE_HTML_WITH_NON_FILM_EVENTS = """
+<!DOCTYPE html>
+<html>
+<body>
+<div class="calendar-events">
+  <article class="event-item">
+    <h2 class="event-title"><a href="https://thetexastheatre.com/event/the-shining-35mm/">THE SHINING (35mm Film Print)</a></h2>
+    <div class="event-date">July 25, 2026</div>
+    <div class="event-time">7:30 PM</div>
+  </article>
+  <article class="event-item">
+    <h3 class="event-title">Comedy Night Stand-Up Showcase</h3>
+    <div class="event-date">July 26, 2026</div>
+    <div class="event-time">9:00 PM</div>
+  </article>
+  <article class="event-item">
+    <h3 class="event-title">Live Music: Local Band Concert</h3>
+    <div class="event-date">July 27, 2026</div>
+    <div class="event-time">8:00 PM</div>
+  </article>
+</div>
+</body>
+</html>
+"""
 
 SAMPLE_TEXAS_THEATRE_HTML = """
 <!DOCTYPE html>
@@ -68,3 +94,19 @@ def test_parse_texas_theatre_html_extracts_showtimes():
     assert sh2.show_date == date(2026, 7, 27)
     assert sh2.start_time == time(20, 0)
     assert sh2.format is None
+
+
+def test_is_non_film_event_detects_comedy_and_music():
+    assert is_non_film_event("Comedy Night Stand-Up Showcase") is True
+    assert is_non_film_event("Live Music: Local Band Concert") is True
+    assert is_non_film_event("Karaoke Night") is True
+    assert is_non_film_event("THE SHINING (35mm Film Print)") is False
+    assert is_non_film_event("") is False
+
+
+def test_parse_texas_theatre_html_excludes_non_film_events():
+    showtimes, count = parse_texas_theatre_html(SAMPLE_HTML_WITH_NON_FILM_EVENTS)
+
+    assert count == 1
+    assert len(showtimes) == 1
+    assert "THE SHINING" in showtimes[0].movie_title

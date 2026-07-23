@@ -8,7 +8,7 @@ from cinema_recs.logging_setup import configure_logging
 from cinema_recs.notify import run_notifications
 from cinema_recs.recommend import run_recommendation_evaluation
 from cinema_recs.scheduler import start_scheduler
-from cinema_recs.storage import get_or_create_cinema, init_schema
+from cinema_recs.storage import ensure_texas_theatre_cinema, get_or_create_cinema, init_schema
 from cinema_recs.web import create_app
 
 logger = logging.getLogger(__name__)
@@ -21,19 +21,27 @@ def bootstrap():
     configure_logging()
     config = load_config()
     init_schema(config.db_path)
-    cinema = get_or_create_cinema(
+    cinepolis = get_or_create_cinema(
         config.db_path, CINEMA_NAME, CINEMA_LOCATION, config.source_url
     )
-    return config, cinema
+    texas_theatre = ensure_texas_theatre_cinema(config.db_path)
+    cinemas = [cinepolis, texas_theatre]
+    return config, cinemas
 
 
-def _log_run(run):
+def _log_run(run, cinema):
     logger.info(
-        "Ingestion run %s finished: outcome=%s showtimes_captured=%d",
+        "Ingestion run %s finished for cinema %r: outcome=%s showtimes_captured=%d",
         run.id,
+        cinema.name,
         run.outcome,
         run.showtimes_captured,
     )
+
+
+def _run_ingestion_all(config, cinemas):
+    for cinema in cinemas:
+        _log_run(run_ingestion(config.db_path, cinema), cinema)
 
 
 def _run_enrichment(config):
@@ -46,30 +54,35 @@ def _run_recommendation_evaluation(config):
     logger.info("Recommendation evaluation finished: movies_evaluated=%d", evaluated)
 
 
-def _run_notifications(config, cinema):
-    sent = run_notifications(config.db_path, cinema.id, config)
-    logger.info("Notification evaluation finished: notifications_sent=%d", sent)
+def _run_notifications_all(config, cinemas):
+    for cinema in cinemas:
+        sent = run_notifications(config.db_path, cinema.id, config)
+        logger.info(
+            "Notification evaluation finished for cinema %r: notifications_sent=%d",
+            cinema.name,
+            sent,
+        )
 
 
 def main():
-    config, cinema = bootstrap()
+    config, cinemas = bootstrap()
 
     if len(sys.argv) > 1 and sys.argv[1] == "ingest-once":
-        _log_run(run_ingestion(config.db_path, cinema))
+        _run_ingestion_all(config, cinemas)
         _run_enrichment(config)
         _run_recommendation_evaluation(config)
-        _run_notifications(config, cinema)
+        _run_notifications_all(config, cinemas)
         return
 
     logger.info("Running one-shot ingestion before starting server")
-    _log_run(run_ingestion(config.db_path, cinema))
+    _run_ingestion_all(config, cinemas)
     _run_enrichment(config)
     _run_recommendation_evaluation(config)
-    _run_notifications(config, cinema)
+    _run_notifications_all(config, cinemas)
 
-    start_scheduler(config, cinema)
+    start_scheduler(config, cinemas)
 
-    app = create_app(config, cinema)
+    app = create_app(config, cinemas)
     app.run(host="0.0.0.0", port=config.port)
 
 
