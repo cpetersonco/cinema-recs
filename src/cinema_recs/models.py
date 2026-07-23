@@ -79,3 +79,12 @@ class MovieRecommendation:
     is_recommended: bool
     reasons: Optional[str]
     evaluated_at: datetime
+
+
+@dataclass
+class NotificationRecord:
+    id: Optional[int]
+    movie_title: str
+    active: bool
+    notified_at: Optional[datetime]
+    last_delivery_outcome: Optional[str]  # "sent" or "failed"

@@ -15,6 +15,8 @@ class Config:
     tmdb_api_key: str
     letterboxd_username: Optional[str]
     letterboxd_rating_threshold: Optional[float]
+    discord_webhook_url: Optional[str]
+    notifications_enabled: bool
 
     @property
     def db_path(self) -> str:
@@ -34,6 +36,16 @@ def _load_letterboxd_rating_threshold() -> Optional[float]:
         return None
 
 
+def _load_notifications_enabled() -> bool:
+    """Enabled by default once a webhook URL is configured — the switch
+    exists to pause delivery without discarding the URL, not to require a
+    second explicit opt-in (spec FR-006, research.md)."""
+    raw = os.environ.get("NOTIFICATIONS_ENABLED")
+    if not raw:
+        return True
+    return raw.strip().lower() not in ("false", "0", "no")
+
+
 def load_config() -> Config:
     source_url = os.environ.get("CINEMA_RECS_SOURCE_URL")
     if not source_url:
@@ -48,6 +60,8 @@ def load_config() -> Config:
     port = int(os.environ.get("CINEMA_RECS_PORT", "8080"))
     letterboxd_username = os.environ.get("LETTERBOXD_USERNAME") or None
     letterboxd_rating_threshold = _load_letterboxd_rating_threshold()
+    discord_webhook_url = os.environ.get("DISCORD_WEBHOOK_URL") or None
+    notifications_enabled = _load_notifications_enabled()
 
     return Config(
         source_url=source_url,
@@ -57,4 +71,6 @@ def load_config() -> Config:
         tmdb_api_key=tmdb_api_key,
         letterboxd_username=letterboxd_username,
         letterboxd_rating_threshold=letterboxd_rating_threshold,
+        discord_webhook_url=discord_webhook_url,
+        notifications_enabled=notifications_enabled,
     )

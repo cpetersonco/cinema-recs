@@ -23,6 +23,8 @@ def _config(tmp_path, username=None, threshold=None):
         tmdb_api_key="test-tmdb-key",
         letterboxd_username=username,
         letterboxd_rating_threshold=threshold,
+        discord_webhook_url=None,
+        notifications_enabled=True,
     )
 
 

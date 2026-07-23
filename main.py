@@ -5,6 +5,7 @@ from cinema_recs.config import load_config
 from cinema_recs.enrich import run_enrichment
 from cinema_recs.ingest import run_ingestion
 from cinema_recs.logging_setup import configure_logging
+from cinema_recs.notify import run_notifications
 from cinema_recs.recommend import run_recommendation_evaluation
 from cinema_recs.scheduler import start_scheduler
 from cinema_recs.storage import get_or_create_cinema, init_schema
@@ -45,6 +46,11 @@ def _run_recommendation_evaluation(config):
     logger.info("Recommendation evaluation finished: movies_evaluated=%d", evaluated)
 
 
+def _run_notifications(config, cinema):
+    sent = run_notifications(config.db_path, cinema.id, config)
+    logger.info("Notification evaluation finished: notifications_sent=%d", sent)
+
+
 def main():
     config, cinema = bootstrap()
 
@@ -52,12 +58,14 @@ def main():
         _log_run(run_ingestion(config.db_path, cinema))
         _run_enrichment(config)
         _run_recommendation_evaluation(config)
+        _run_notifications(config, cinema)
         return
 
     logger.info("Running one-shot ingestion before starting server")
     _log_run(run_ingestion(config.db_path, cinema))
     _run_enrichment(config)
     _run_recommendation_evaluation(config)
+    _run_notifications(config, cinema)
 
     start_scheduler(config, cinema)
 

@@ -6,6 +6,7 @@ from cinema_recs.config import Config
 from cinema_recs.enrich import run_enrichment
 from cinema_recs.ingest import run_ingestion
 from cinema_recs.models import Cinema
+from cinema_recs.notify import run_notifications
 from cinema_recs.recommend import run_recommendation_evaluation
 
 logger = logging.getLogger(__name__)
@@ -32,6 +33,9 @@ def start_scheduler(config: Config, cinema: Cinema) -> BackgroundScheduler:
         # (spec FR-002/FR-007/SC-002).
         evaluated = run_recommendation_evaluation(config.db_path, config)
         logger.info("Scheduled recommendation evaluation finished: movies_evaluated=%d", evaluated)
+
+        sent = run_notifications(config.db_path, cinema.id, config)
+        logger.info("Scheduled notification evaluation finished: notifications_sent=%d", sent)
 
     # main.py already performs one ingestion/enrichment/evaluation cycle
     # synchronously at startup, so the first scheduled run naturally lands

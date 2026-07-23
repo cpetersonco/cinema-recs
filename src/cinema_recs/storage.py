@@ -11,6 +11,7 @@ from cinema_recs.models import (
     LetterboxdMovieData,
     MovieMetadata,
     MovieRecommendation,
+    NotificationRecord,
     Showtime,
 )
 
@@ -93,6 +94,14 @@ CREATE TABLE IF NOT EXISTS movie_recommendation (
     is_recommended INTEGER NOT NULL,
     reasons TEXT,
     evaluated_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS notification_record (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    movie_title TEXT NOT NULL UNIQUE,
+    active INTEGER NOT NULL,
+    notified_at TEXT,
+    last_delivery_outcome TEXT
 );
 """
 
@@ -621,4 +630,85 @@ def upsert_movie_recommendation(
             is_recommended=is_recommended,
             reasons=reasons,
             evaluated_at=evaluated_at,
+        )
+
+
+def get_next_showtime_for_movie(db_path: str, cinema_id: int, movie_title: str) -> Optional[Showtime]:
+    """The movie's single earliest upcoming active showtime (research.md's
+    "which showtime's date/time" decision for feature 004's notifications)."""
+    with get_connection(db_path) as conn:
+        row = conn.execute(
+            """
+            SELECT * FROM showtime
+            WHERE cinema_id = ? AND movie_title = ? AND status = 'active'
+            ORDER BY show_date, start_time
+            LIMIT 1
+            """,
+            (cinema_id, movie_title),
+        ).fetchone()
+        if row is None:
+            return None
+        return _row_to_showtime(row)
+
+
+def get_notification_record(db_path: str, movie_title: str) -> Optional[NotificationRecord]:
+    with get_connection(db_path) as conn:
+        row = conn.execute(
+            "SELECT * FROM notification_record WHERE movie_title = ?", (movie_title,)
+        ).fetchone()
+        if row is None:
+            return None
+        return NotificationRecord(
+            id=row["id"],
+            movie_title=row["movie_title"],
+            active=bool(row["active"]),
+            notified_at=datetime.fromisoformat(row["notified_at"]) if row["notified_at"] else None,
+            last_delivery_outcome=row["last_delivery_outcome"],
+        )
+
+
+def upsert_notification_record(
+    db_path: str,
+    movie_title: str,
+    active: bool,
+    notified_at: Optional[datetime] = None,
+    last_delivery_outcome: Optional[str] = None,
+) -> NotificationRecord:
+    with get_connection(db_path) as conn:
+        row = conn.execute(
+            "SELECT id FROM notification_record WHERE movie_title = ?", (movie_title,)
+        ).fetchone()
+
+        params = (
+            int(active),
+            notified_at.isoformat() if notified_at else None,
+            last_delivery_outcome,
+        )
+
+        if row is not None:
+            conn.execute(
+                """
+                UPDATE notification_record SET
+                    active = ?, notified_at = ?, last_delivery_outcome = ?
+                WHERE movie_title = ?
+                """,
+                params + (movie_title,),
+            )
+            record_id = row["id"]
+        else:
+            cursor = conn.execute(
+                """
+                INSERT INTO notification_record (movie_title, active, notified_at, last_delivery_outcome)
+                VALUES (?, ?, ?, ?)
+                """,
+                (movie_title,) + params,
+            )
+            record_id = cursor.lastrowid
+
+        return NotificationRecord(
+            id=record_id,
+            movie_title=movie_title,
+            active=active,
+            notified_at=notified_at,
+            last_delivery_outcome=last_delivery_outcome,
         )
