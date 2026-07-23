@@ -1,7 +1,7 @@
 import os
 import sqlite3
 from contextlib import contextmanager
-from datetime import date, datetime, time
+from datetime import date, datetime, time, timezone
 from typing import Iterator, Optional
 
 from cinema_recs.models import (
@@ -21,7 +21,8 @@ CREATE TABLE IF NOT EXISTS cinema (
     name TEXT NOT NULL,
     location TEXT NOT NULL,
     source_url TEXT NOT NULL,
-    created_at TEXT NOT NULL
+    created_at TEXT NOT NULL,
+    source_type TEXT NOT NULL DEFAULT 'cinepolis'
 );
 
 CREATE TABLE IF NOT EXISTS showtime (
@@ -126,6 +127,7 @@ def init_schema(db_path: str) -> None:
         conn.executescript(SCHEMA)
         _migrate_add_showtime_ticket_url(conn)
         _migrate_add_notification_disappearance_columns(conn)
+        _migrate_add_cinema_source_type(conn)
 
 
 def _migrate_add_showtime_ticket_url(conn: sqlite3.Connection) -> None:
@@ -152,16 +154,53 @@ def _migrate_add_notification_disappearance_columns(conn: sqlite3.Connection) ->
         )
 
 
+def _migrate_add_cinema_source_type(conn: sqlite3.Connection) -> None:
+    """Add cinema.source_type (feature 011 spec FR-001/FR-004) to a database
+    created before this column existed. A no-op against a fresh database,
+    since CREATE TABLE IF NOT EXISTS above already includes it there.
+
+    The ALTER TABLE's own DEFAULT 'cinepolis' applies to every pre-existing
+    row automatically, but that's only correct for Cinepolis-style rows —
+    so this backfills the other two known sources using the same
+    substring-matching rules `ingest.py`'s dispatch used to rely on
+    (research.md §1). This is the *last* use of that matching logic: it
+    runs once, only for rows that predate this column, never as ongoing
+    dispatch — new rows always get their source_type explicitly from the
+    caller (`get_or_create_cinema`), never inferred.
+    """
+    columns = {row["name"] for row in conn.execute("PRAGMA table_info(cinema)")}
+    if "source_type" in columns:
+        return
+
+    conn.execute("ALTER TABLE cinema ADD COLUMN source_type TEXT NOT NULL DEFAULT 'cinepolis'")
+    conn.execute(
+        "UPDATE cinema SET source_type = 'texas_theatre' "
+        "WHERE lower(source_url) LIKE '%thetexastheatre.com%' OR lower(name) LIKE '%texas theatre%'"
+    )
+    conn.execute(
+        "UPDATE cinema SET source_type = 'angelika_dallas' "
+        "WHERE lower(source_url) LIKE '%angelikafilmcenter.com%' OR lower(name) LIKE '%angelika%'"
+    )
+
+
 def get_or_create_cinema(
-    db_path: str, name: str, location: str, source_url: str
+    db_path: str, name: str, location: str, source_url: str, source_type: str = "cinepolis"
 ) -> Cinema:
+    """`source_type` identifies which scraper `run_ingestion` uses for this
+    cinema (feature 011 spec FR-001) — set explicitly by the caller, never
+    inferred from `name`/`source_url`. Defaults to `"cinepolis"` so existing
+    callers that don't care about routing (most test fixtures) keep working
+    unchanged; every real registration path in this app
+    (`ensure_texas_theatre_cinema`, `ensure_angelika_dallas_cinema`,
+    `main.py`'s Cinepolis registration) passes it explicitly."""
     with get_connection(db_path) as conn:
         row = conn.execute(
             "SELECT * FROM cinema WHERE name = ? AND location = ?", (name, location)
         ).fetchone()
         if row is not None:
             conn.execute(
-                "UPDATE cinema SET source_url = ? WHERE id = ?", (source_url, row["id"])
+                "UPDATE cinema SET source_url = ?, source_type = ? WHERE id = ?",
+                (source_url, source_type, row["id"]),
             )
             return Cinema(
                 id=row["id"],
@@ -169,12 +208,14 @@ def get_or_create_cinema(
                 location=row["location"],
                 source_url=source_url,
                 created_at=datetime.fromisoformat(row["created_at"]),
+                source_type=source_type,
             )
 
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc).replace(tzinfo=None)
         cursor = conn.execute(
-            "INSERT INTO cinema (name, location, source_url, created_at) VALUES (?, ?, ?, ?)",
-            (name, location, source_url, now.isoformat()),
+            "INSERT INTO cinema (name, location, source_url, created_at, source_type) "
+            "VALUES (?, ?, ?, ?, ?)",
+            (name, location, source_url, now.isoformat(), source_type),
         )
         return Cinema(
             id=cursor.lastrowid,
@@ -182,6 +223,7 @@ def get_or_create_cinema(
             location=location,
             source_url=source_url,
             created_at=now,
+            source_type=source_type,
         )
 
 
@@ -196,6 +238,7 @@ def get_cinema_by_name(db_path: str, name: str) -> Optional[Cinema]:
             location=row["location"],
             source_url=row["source_url"],
             created_at=datetime.fromisoformat(row["created_at"]),
+            source_type=row["source_type"],
         )
 
 
@@ -211,6 +254,7 @@ def ensure_texas_theatre_cinema(db_path: str) -> Cinema:
         name=TEXAS_THEATRE_NAME,
         location=TEXAS_THEATRE_LOCATION,
         source_url=TEXAS_THEATRE_DEFAULT_URL,
+        source_type="texas_theatre",
     )
 
 
@@ -226,6 +270,7 @@ def ensure_angelika_dallas_cinema(db_path: str) -> Cinema:
         name=ANGELIKA_DALLAS_NAME,
         location=ANGELIKA_DALLAS_LOCATION,
         source_url=ANGELIKA_DALLAS_DEFAULT_URL,
+        source_type="angelika_dallas",
     )
 
 
@@ -436,7 +481,7 @@ def upsert_movie_metadata(
 ) -> MovieMetadata:
     """Insert or replace the cached MovieMetadata row for movie_title (spec
     FR-003's caching requirement: one row per distinct ingested title)."""
-    enriched_at = enriched_at or datetime.utcnow()
+    enriched_at = enriched_at or datetime.now(timezone.utc).replace(tzinfo=None)
     with get_connection(db_path) as conn:
         row = conn.execute(
             "SELECT id FROM movie_metadata WHERE movie_title = ?", (movie_title,)
@@ -503,7 +548,7 @@ def record_enrichment_attempt(
     attempted_at: Optional[datetime] = None,
     error_message: Optional[str] = None,
 ) -> EnrichmentAttempt:
-    attempted_at = attempted_at or datetime.utcnow()
+    attempted_at = attempted_at or datetime.now(timezone.utc).replace(tzinfo=None)
     with get_connection(db_path) as conn:
         cursor = conn.execute(
             """
@@ -571,7 +616,7 @@ def upsert_letterboxd_movie_data(
     average_rating: Optional[float],
     fetched_at: Optional[datetime] = None,
 ) -> LetterboxdMovieData:
-    fetched_at = fetched_at or datetime.utcnow()
+    fetched_at = fetched_at or datetime.now(timezone.utc).replace(tzinfo=None)
     with get_connection(db_path) as conn:
         row = conn.execute(
             "SELECT id FROM letterboxd_movie_data WHERE movie_title = ?", (movie_title,)
@@ -623,7 +668,7 @@ def replace_reference_list_slugs(db_path: str, list_key: str, slugs: set[str]) -
     *successful* fetch — on failure, leave the existing cache untouched
     rather than treating the list as empty (data-model.md's resilience
     rule for FR-002/FR-007's periodic re-evaluation requirement)."""
-    fetched_at = datetime.utcnow().isoformat()
+    fetched_at = datetime.now(timezone.utc).replace(tzinfo=None).isoformat()
     with get_connection(db_path) as conn:
         conn.execute("DELETE FROM letterboxd_reference_list WHERE list_key = ?", (list_key,))
         conn.executemany(
@@ -658,7 +703,7 @@ def upsert_movie_recommendation(
     reasons: Optional[str] = None,
     evaluated_at: Optional[datetime] = None,
 ) -> MovieRecommendation:
-    evaluated_at = evaluated_at or datetime.utcnow()
+    evaluated_at = evaluated_at or datetime.now(timezone.utc).replace(tzinfo=None)
     with get_connection(db_path) as conn:
         row = conn.execute(
             "SELECT id FROM movie_recommendation WHERE movie_title = ?", (movie_title,)

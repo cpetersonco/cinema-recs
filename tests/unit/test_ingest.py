@@ -128,3 +128,64 @@ def test_run_ingestion_success_when_reported_count_matches(db_path, cinema, monk
     run = run_ingestion(db_path, cinema)
 
     assert run.outcome == "success"
+
+
+# --- Explicit source_type dispatch (feature 011) ---
+
+SCRAPER_NAMES = (
+    "scrape_showtimes",
+    "scrape_texas_theatre_showtimes",
+    "scrape_angelika_dallas_showtimes",
+)
+
+
+def _refuse_if_called(name):
+    def _fail(url):
+        raise AssertionError(f"{name} should not have been called")
+    return _fail
+
+
+def _assert_dispatches_to(db_path, monkeypatch, source_type, expected_scraper_name):
+    cinema = storage.get_or_create_cinema(
+        db_path, "Any Name", "Anywhere", "https://example.com", source_type=source_type
+    )
+    called = []
+    for name in SCRAPER_NAMES:
+        if name == expected_scraper_name:
+            monkeypatch.setattr(
+                f"cinema_recs.ingest.{name}",
+                lambda url, name=name: (called.append(name), _result([]))[1],
+            )
+        else:
+            monkeypatch.setattr(f"cinema_recs.ingest.{name}", _refuse_if_called(name))
+
+    run_ingestion(db_path, cinema)
+
+    assert called == [expected_scraper_name]
+
+
+def test_run_ingestion_dispatches_on_cinepolis_source_type(db_path, monkeypatch):
+    _assert_dispatches_to(db_path, monkeypatch, "cinepolis", "scrape_showtimes")
+
+
+def test_run_ingestion_dispatches_on_texas_theatre_source_type(db_path, monkeypatch):
+    _assert_dispatches_to(db_path, monkeypatch, "texas_theatre", "scrape_texas_theatre_showtimes")
+
+
+def test_run_ingestion_dispatches_on_angelika_dallas_source_type(db_path, monkeypatch):
+    _assert_dispatches_to(
+        db_path, monkeypatch, "angelika_dallas", "scrape_angelika_dallas_showtimes"
+    )
+
+
+def test_run_ingestion_fails_loudly_for_unrecognized_source_type(db_path, monkeypatch):
+    cinema = storage.get_or_create_cinema(
+        db_path, "Mystery Cinema", "Nowhere", "https://example.com", source_type="mystery_source"
+    )
+    for name in SCRAPER_NAMES:
+        monkeypatch.setattr(f"cinema_recs.ingest.{name}", _refuse_if_called(name))
+
+    run = run_ingestion(db_path, cinema)
+
+    assert run.outcome == "failure"
+    assert "mystery_source" in run.error_message

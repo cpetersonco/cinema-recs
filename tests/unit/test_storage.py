@@ -27,6 +27,60 @@ def test_get_or_create_cinema_is_idempotent(db_path):
     assert second.source_url == "https://b"
 
 
+def test_get_or_create_cinema_defaults_source_type_to_cinepolis(db_path):
+    # Preserves today's implicit "generic source" behavior for callers
+    # that don't pass a type (feature 011 spec FR-001, tasks.md Notes).
+    cinema = storage.get_or_create_cinema(db_path, "Some Cinema", "Somewhere", "https://example.com")
+    assert cinema.source_type == "cinepolis"
+
+
+def test_get_or_create_cinema_stores_explicit_source_type(db_path):
+    cinema = storage.get_or_create_cinema(
+        db_path, "Texas Theatre", "Dallas, TX", "https://thetexastheatre.com/calendar",
+        source_type="texas_theatre",
+    )
+    assert cinema.source_type == "texas_theatre"
+
+
+def test_migration_backfills_source_type_for_pre_existing_rows(tmp_path):
+    # Simulate a database created before the source_type column existed:
+    # build a cinema table that genuinely lacks the column (not just a
+    # NULL value, since the real column is NOT NULL), insert rows the old
+    # way, then run init_schema (which runs the migration) against it.
+    db_path = str(tmp_path / "pre_migration.db")
+    with storage.get_connection(db_path) as conn:
+        conn.executescript(
+            """
+            CREATE TABLE cinema (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                location TEXT NOT NULL,
+                source_url TEXT NOT NULL,
+                created_at TEXT NOT NULL
+            );
+            """
+        )
+        for name, location, source_url in [
+            ("Texas Theatre", "Dallas, TX", "https://thetexastheatre.com/calendar"),
+            ("Angelika Film Center Dallas", "Dallas, TX", "https://angelikafilmcenter.com/dallas"),
+            ("Cinepolis McKinney", "McKinney, TX", "https://www.cinepolisusa.com/mckinney/showtimes"),
+        ]:
+            conn.execute(
+                "INSERT INTO cinema (name, location, source_url, created_at) VALUES (?, ?, ?, ?)",
+                (name, location, source_url, "2026-01-01T00:00:00"),
+            )
+
+    storage.init_schema(db_path)
+
+    texas = storage.get_cinema_by_name(db_path, "Texas Theatre")
+    angelika = storage.get_cinema_by_name(db_path, "Angelika Film Center Dallas")
+    cinepolis = storage.get_cinema_by_name(db_path, "Cinepolis McKinney")
+
+    assert texas.source_type == "texas_theatre"
+    assert angelika.source_type == "angelika_dallas"
+    assert cinepolis.source_type == "cinepolis"
+
+
 def test_upsert_showtime_inserts_new_record(db_path, cinema):
     seen_at = datetime(2026, 8, 1, 10, 0, 0)
     storage.upsert_showtime(

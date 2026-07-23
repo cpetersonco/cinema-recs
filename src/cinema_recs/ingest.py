@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 
 from cinema_recs import storage
 from cinema_recs.models import Cinema, IngestionRun
@@ -13,21 +13,31 @@ logger = logging.getLogger(__name__)
 
 
 def run_ingestion(db_path: str, cinema: Cinema) -> IngestionRun:
-    started_at = datetime.utcnow()
+    started_at = datetime.now(timezone.utc).replace(tzinfo=None)
+
+    # Explicit mapping from Cinema.source_type to its scraper (feature 011
+    # spec FR-001) — replaces the old substring-matching dispatch that
+    # silently fell back to the Cinepolis scraper for any unrecognized
+    # source (spec FR-003). Built fresh per call (not at module load) so it
+    # resolves each scraper name through this module's own current
+    # namespace — required for tests to monkeypatch
+    # `cinema_recs.ingest.scrape_showtimes` etc. and have dispatch actually
+    # use the patched version, the same way the module-level names were
+    # already re-resolved per call under the old if/elif/else dispatch.
+    scrapers_by_source_type = {
+        "cinepolis": scrape_showtimes,
+        "texas_theatre": scrape_texas_theatre_showtimes,
+        "angelika_dallas": scrape_angelika_dallas_showtimes,
+    }
 
     try:
-        if "thetexastheatre.com" in cinema.source_url.lower() or "texas theatre" in cinema.name.lower():
-            result = scrape_texas_theatre_showtimes(cinema.source_url)
-        elif (
-            "angelikafilmcenter.com" in cinema.source_url.lower()
-            or "angelika" in cinema.name.lower()
-        ):
-            result = scrape_angelika_dallas_showtimes(cinema.source_url)
-        else:
-            result = scrape_showtimes(cinema.source_url)
+        scraper = scrapers_by_source_type.get(cinema.source_type)
+        if scraper is None:
+            raise ValueError(f"Unrecognized cinema source_type: {cinema.source_type!r}")
+        result = scraper(cinema.source_url)
     except Exception as exc:  # noqa: BLE001 - any scrape failure is recorded, not raised
         logger.exception("Ingestion run failed for cinema %s", cinema.id)
-        finished_at = datetime.utcnow()
+        finished_at = datetime.now(timezone.utc).replace(tzinfo=None)
         return storage.record_ingestion_run(
             db_path,
             cinema_id=cinema.id,
@@ -56,7 +66,7 @@ def run_ingestion(db_path: str, cinema: Cinema) -> IngestionRun:
             ticket_url=showtime.ticket_url,
         )
 
-    finished_at = datetime.utcnow()
+    finished_at = datetime.now(timezone.utc).replace(tzinfo=None)
     outcome = "success"
     error_message = None
     skipped_count = result.reported_count - len(showtimes)

@@ -27,7 +27,7 @@ def bootstrap():
     config = load_config()
     init_schema(config.db_path)
     cinepolis = get_or_create_cinema(
-        config.db_path, CINEMA_NAME, CINEMA_LOCATION, config.source_url
+        config.db_path, CINEMA_NAME, CINEMA_LOCATION, config.source_url, source_type="cinepolis"
     )
     texas_theatre = ensure_texas_theatre_cinema(config.db_path)
     angelika_dallas = ensure_angelika_dallas_cinema(config.db_path)

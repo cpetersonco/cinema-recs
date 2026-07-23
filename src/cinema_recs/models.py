@@ -10,6 +10,7 @@ class Cinema:
     location: str
     source_url: str
     created_at: datetime
+    source_type: str = "cinepolis"
 
 
 @dataclass
