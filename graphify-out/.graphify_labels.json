@@ -102,5 +102,12 @@
   "100": "Cinema",
   "101": "_ensure_letterboxd_data_cached",
   "102": "1. Calendar Page Source & Parsing Method",
-  "103": "upsert_showtime"
+  "103": "upsert_showtime",
+  "104": "Scrape Function Interface",
+  "105": "Implementation Plan: AMC Stonebriar 24 Showtime Ingestion Source",
+  "106": "Data Model: AMC Stonebriar 24 Showtime Source",
+  "107": "Validation Scenarios",
+  "108": "Specification Quality Checklist: AMC Stonebriar 24 Showtime Ingestion Source",
+  "109": "012-amc-stonebriar-source/spec.md",
+  "110": "2. Projection Format Extraction Logic"
 }
