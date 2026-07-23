@@ -14,6 +14,12 @@ ANGELIKA_DALLAS_NAME = "Angelika Film Center Dallas"
 ANGELIKA_DALLAS_LOCATION = "Dallas, TX"
 ANGELIKA_DALLAS_DEFAULT_URL = "https://angelikafilmcenter.com/dallas"
 
+AMC_STONEBRIAR_NAME = "AMC Stonebriar 24"
+AMC_STONEBRIAR_LOCATION = "Frisco, TX (Dallas-Ft. Worth)"
+AMC_STONEBRIAR_DEFAULT_URL = (
+    "https://www.amctheatres.com/movie-theatres/dallas-ft-worth/amc-stonebriar-24/showtimes"
+)
+
 
 @dataclass(frozen=True)
 class Config:

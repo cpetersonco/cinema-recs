@@ -101,5 +101,14 @@
   "99": "init_schema",
   "100": "Cinema",
   "101": "_ensure_letterboxd_data_cached",
-  "102": "1. Calendar Page Source & Parsing Method"
+  "102": "1. Calendar Page Source & Parsing Method",
+  "103": "Feature Specification: AMC Stonebriar 24 Showtime Ingestion Source",
+  "104": "Research: AMC Stonebriar 24 Showtime Ingestion Source",
+  "105": "Scrape Function Interface",
+  "106": "Implementation Plan: AMC Stonebriar 24 Showtime Ingestion Source",
+  "107": "Data Model: AMC Stonebriar 24 Showtime Source",
+  "108": "Validation Scenarios",
+  "109": "Specification Quality Checklist: AMC Stonebriar 24 Showtime Ingestion Source",
+  "110": "012-amc-stonebriar-source/spec.md",
+  "111": "2. Projection Format Extraction Logic"
 }

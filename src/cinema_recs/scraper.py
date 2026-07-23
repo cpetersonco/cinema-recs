@@ -1044,3 +1044,317 @@ def scrape_angelika_dallas_showtimes(
     assert last_error is not None
     raise last_error
 
+
+# --- AMC Stonebriar 24 Showtime Source Scraper ---
+
+# AMC Stonebriar 24 is served by amctheatres.com's Next.js/RSC web app. Live
+# inspection (research.md §2) found no standalone JSON showtimes API on the
+# wire — showtimes arrive inline in the server-rendered document — but a
+# plain HTTP request (a bare `curl` with a realistic desktop User-Agent) gets
+# redirected (302) to a Cloudflare-integrated Queue-It bot gate at
+# queue.amctheatres.com before any content is served, so a real Playwright
+# browser context is required (same as Angelika Dallas), even though the
+# actual scrape is a DOM parse (same technique as Texas Theatre).
+#
+# Confirmed live via the rendered page's own DOM (research.md §3, and
+# follow-up live inspection for tasks.md T003): each film is one <section>
+# with an <h1> title, and one `<li aria-label="{Format Name} Showtimes">`
+# per presentation format (e.g. `aria-label="IMAX with Laser at AMC
+# Showtimes"`). Each format's showtime buttons are plain
+# `<a href="https://www.amctheatres.com/showtimes/{id}">` anchors carrying
+# the display time directly in already-rendered markup (plus, for
+# near-capacity/discounted showings, trailing badge text like "ALMOST FULL"
+# or "20% OFF" in the same link) — no click-through is needed to discover a
+# session id. The ticket/seat-selection URL is that same id with a "/seats"
+# suffix appended (confirmed by following one link through to the seat map,
+# read-only, no purchase action taken).
+#
+# The date picker is a native `<select name="date">` already present in the
+# server-rendered page, with one `<option>` per day of the site's own
+# published window (130 days observed live) — empty value means "today",
+# other days use `value="YYYY-MM-DD"`. Passing that same value as a
+# `?date=YYYY-MM-DD` query string on the showtimes URL (confirmed live)
+# reloads the page already showing that date's showtimes — no separate
+# API/route or per-day click-through needed, unlike Texas Theatre's "next
+# month" link-walk or Angelika's date-strip click-and-capture. Because the
+# select's own option list is the site's authoritative statement of its
+# published window, walking it directly (rather than guessing a stop
+# condition) mirrors how Angelika's date-strip was treated as authoritative.
+#
+# Unlike Angelika's date strip (bounded to each open movie's own current
+# booking window, observed ~2 weeks) or Texas Theatre's month-walk (which
+# stops after two empty months), AMC's select offers ~130 days and — live
+# spot-check confirmed — every one of those days already has a full slate of
+# showtimes (a major chain schedules far ahead), so there is no empty-period
+# stop condition to rely on: walking the whole option list would mean ~130
+# page loads per run, several minutes rather than spec SC-004's 30-second
+# target. The walk is therefore capped to the next
+# `AMC_STONEBRIAR_MAX_WALK_DAYS` days — a deliberate scope decision (like
+# Texas Theatre's two-empty-month stop), not a fetch failure, so a fully
+# walked capped window still reports `complete=True`.
+AMC_STONEBRIAR_MAX_WALK_DAYS = 14
+
+AMC_STONEBRIAR_QUEUE_GATE_HOST = "queue.amctheatres.com"
+
+# Titles that render as their own "movie" section but aren't film screenings
+# (observed live: a "Private Theatre Rental" listing alongside real films).
+NON_FILM_AMC_STONEBRIAR_TITLES = {"private theatre rental", "private theatre rentals"}
+
+_AMC_STONEBRIAR_TIME_RE = re.compile(r"^\s*(\d{1,2}:\d{2}\s*[ap]m)", re.IGNORECASE)
+_AMC_STONEBRIAR_FORMAT_LI_SELECTOR = "li[aria-label$=' Showtimes']"
+
+
+def _amc_stonebriar_looks_like_queue_gate(page_url: str) -> bool:
+    """True when Playwright's navigation was redirected to the Queue-It/
+    Cloudflare bot gate (research.md §2) instead of the real showtimes page —
+    a URL-host check, since (unlike the other sources' `BLOCK_PAGE_MARKERS`)
+    this gate is a redirect to a different origin, not a challenge page
+    served at the requested URL."""
+    return AMC_STONEBRIAR_QUEUE_GATE_HOST in page_url
+
+
+def _parse_amc_stonebriar_time(text: str) -> time | None:
+    match = _AMC_STONEBRIAR_TIME_RE.match(text)
+    if not match:
+        return None
+    cleaned = match.group(1).replace(" ", "").upper()
+    try:
+        return datetime.strptime(cleaned, "%I:%M%p").time()
+    except ValueError:
+        return None
+
+
+def parse_amc_stonebriar_html(
+    html: str, show_date: date
+) -> tuple[list[ScrapedShowtime], int]:
+    """Parse one day's AMC Stonebriar 24 showtimes page (research.md §3,
+    tasks.md T003).
+
+    Each film is one `<section>` with an `<h1>` title; each presentation
+    format within it is one `<li aria-label="{Format Name} Showtimes">`
+    containing that format's showtime `<a>` anchors. Non-film sections
+    (e.g. "Private Theatre Rental") are excluded before being counted, so
+    they never trigger a false "partial" outcome in ingest.py.
+    """
+    soup = BeautifulSoup(html, "html.parser")
+    showtimes: list[ScrapedShowtime] = []
+    reported_count = 0
+
+    for section in soup.find_all("section"):
+        title_el = section.find("h1")
+        if title_el is None:
+            continue
+        title = title_el.get_text(" ", strip=True)
+        if not title or title.strip().lower() in NON_FILM_AMC_STONEBRIAR_TITLES:
+            continue
+
+        for format_li in section.select(_AMC_STONEBRIAR_FORMAT_LI_SELECTOR):
+            aria_label = (format_li.get("aria-label") or "").strip()
+            fmt = re.sub(r"\s+Showtimes$", "", aria_label).strip() or None
+
+            for link in format_li.find_all("a", href=re.compile(r"/showtimes/\d+$")):
+                reported_count += 1
+                start_time = _parse_amc_stonebriar_time(link.get_text(" ", strip=True))
+                if not title or start_time is None:
+                    continue
+
+                href = (link.get("href") or "").strip()
+                ticket_url = f"{href}/seats" if href else None
+
+                showtimes.append(
+                    ScrapedShowtime(
+                        movie_title=title,
+                        show_date=show_date,
+                        start_time=start_time,
+                        format=fmt,
+                        ticket_url=ticket_url,
+                    )
+                )
+
+    return showtimes, reported_count
+
+
+def _extract_amc_stonebriar_dates(html: str, today: date) -> list[date]:
+    """Read the date picker's own `<select name="date">` option list — the
+    site's own already-computed full published window (research.md §5) —
+    straight from server-rendered markup, rather than guessing a stop
+    condition. The first option (empty value) is always "Today". Callers
+    cap this list to `AMC_STONEBRIAR_MAX_WALK_DAYS`; this function itself
+    returns the site's full declared window uncapped, so it stays a
+    faithful "what does the site say" parse."""
+    soup = BeautifulSoup(html, "html.parser")
+    select = soup.find("select", attrs={"name": "date"})
+    if select is None:
+        return [today]
+
+    dates = [today]
+    for option in select.find_all("option"):
+        value = (option.get("value") or "").strip()
+        if not value:
+            continue
+        try:
+            dates.append(date.fromisoformat(value))
+        except ValueError:
+            continue
+    return dates
+
+
+def _fetch_amc_stonebriar_page_with_retry(
+    page: Any, url: str, timeout_ms: int = 30_000
+) -> str:
+    """Fetch one day's showtimes page HTML from an already-open Playwright
+    `page`/context, retrying transient failures a few times with a short
+    backoff before giving up on this one day."""
+    last_error: Exception | None = None
+    for attempt in range(1, MAX_FETCH_ATTEMPTS + 1):
+        try:
+            response = page.goto(url, wait_until="domcontentloaded", timeout=timeout_ms)
+            if _amc_stonebriar_looks_like_queue_gate(page.url):
+                raise BlockedError(
+                    f"Redirected to AMC's bot/queue gate instead of the showtimes page: {url}"
+                )
+            if response is not None and response.status >= 400:
+                raise RuntimeError(f"AMC Stonebriar 24 request failed with HTTP {response.status}")
+
+            # `domcontentloaded` fires before this Next.js page's own
+            # client-side data/hydration has populated the showtimes
+            # <section> elements — confirmed live: capturing page.content()
+            # immediately after goto() intermittently returned an
+            # empty/stale showtimes list for a given date (some dates
+            # silently missing or wrong across repeated runs, tasks.md
+            # T021 validation). Waiting for at least one <section> (a real
+            # movie listing) or the site's own "no showtimes" heading
+            # (whichever appears first) before snapshotting HTML makes each
+            # day's fetch deterministic. A timeout here almost certainly
+            # means a genuinely empty day rather than bot-blocking (already
+            # ruled out above), so it is not treated as a fetch failure.
+            try:
+                page.wait_for_selector(
+                    "section, :text('No Showtimes')", timeout=timeout_ms
+                )
+            except PlaywrightTimeoutError:
+                pass
+
+            html = page.content()
+            if looks_blocked(html):
+                raise BlockedError(f"Blocked by bot protection for {url}")
+            return html
+        except (PlaywrightError, PlaywrightTimeoutError, BlockedError, RuntimeError) as exc:
+            last_error = exc
+            logger.warning(
+                "Fetch attempt %d/%d failed for %s: %s",
+                attempt, MAX_FETCH_ATTEMPTS, url, exc,
+            )
+            if attempt < MAX_FETCH_ATTEMPTS:
+                time_module.sleep(RETRY_BACKOFF_SECONDS)
+
+    assert last_error is not None
+    raise last_error
+
+
+def _walk_amc_stonebriar_dates(
+    fetch_page_fn: Callable[[str], str],
+    base_url: str,
+    dates: list[date],
+) -> ScrapeResult:
+    """Fetch one page per day in `dates` (the site's own declared published
+    window, per `_extract_amc_stonebriar_dates`), stopping early if a day's
+    fetch raises after exhausting its own retries. Complete only when every
+    day was fetched.
+
+    Pure walking logic, independent of Playwright, so it can be unit tested
+    with a fake `fetch_page_fn`.
+    """
+    if not dates:
+        return ScrapeResult(showtimes=[], reported_count=0, complete=True)
+
+    showtimes: list[ScrapedShowtime] = []
+    reported_count = 0
+    complete = False
+    incomplete_reason: str | None = None
+
+    for index, show_date in enumerate(dates):
+        url = base_url if index == 0 else f"{base_url}?date={show_date.isoformat()}"
+        try:
+            html = fetch_page_fn(url)
+        except Exception as exc:  # noqa: BLE001 - any per-day failure ends the walk, not the run
+            incomplete_reason = f"failed fetching {show_date.isoformat()}: {exc}"
+            break
+
+        day_showtimes, day_count = parse_amc_stonebriar_html(html, show_date)
+        showtimes.extend(day_showtimes)
+        reported_count += day_count
+    else:
+        complete = True
+
+    return ScrapeResult(
+        showtimes=showtimes,
+        reported_count=reported_count,
+        complete=complete,
+        incomplete_reason=incomplete_reason,
+    )
+
+
+def scrape_amc_stonebriar_showtimes(
+    source_url: str = "https://www.amctheatres.com/movie-theatres/dallas-ft-worth/amc-stonebriar-24/showtimes",
+    timeout_ms: int = 30_000,
+) -> ScrapeResult:
+    """Fetch every showtime AMC Stonebriar 24 currently has published across
+    the next `AMC_STONEBRIAR_MAX_WALK_DAYS` days of its own date-picker
+    `<select>` (research.md §5) — not just today, but capped short of the
+    site's full ~130-day window, which is always fully populated and would
+    blow well past spec SC-004's 30-second run budget if walked in full
+    (see module comment above `AMC_STONEBRIAR_MAX_WALK_DAYS`). One
+    browser/context/page is reused across all days fetched in this run."""
+    logger.info("Starting AMC Stonebriar 24 showtime scrape for %s", source_url)
+    today = datetime.now(tz=CENTRAL_TIME).date()
+
+    last_error: Exception | None = None
+    for attempt in range(1, MAX_FETCH_ATTEMPTS + 1):
+        try:
+            with sync_playwright() as p:
+                browser = p.chromium.launch(headless=True)
+                try:
+                    context = browser.new_context(user_agent=REALISTIC_USER_AGENT)
+                    Stealth().apply_stealth_sync(context)
+                    page = context.new_page()
+                    initial_html = _fetch_amc_stonebriar_page_with_retry(
+                        page, source_url, timeout_ms
+                    )
+                    dates = _extract_amc_stonebriar_dates(initial_html, today)[
+                        :AMC_STONEBRIAR_MAX_WALK_DAYS
+                    ]
+                    result = _walk_amc_stonebriar_dates(
+                        lambda url: (
+                            initial_html
+                            if url == source_url
+                            else _fetch_amc_stonebriar_page_with_retry(page, url, timeout_ms)
+                        ),
+                        source_url,
+                        dates,
+                    )
+                finally:
+                    browser.close()
+        except (
+            PlaywrightError, PlaywrightTimeoutError, BlockedError, RuntimeError,
+        ) as exc:
+            last_error = exc
+            logger.warning(
+                "Fetch attempt %d/%d failed for %s: %s",
+                attempt, MAX_FETCH_ATTEMPTS, source_url, exc,
+            )
+            if attempt < MAX_FETCH_ATTEMPTS:
+                time_module.sleep(RETRY_BACKOFF_SECONDS)
+                continue
+            raise
+        else:
+            logger.info(
+                "AMC Stonebriar 24 scrape complete: %d showtime(s) parsed out of %d reported "
+                "across %d date(s) (complete=%s)",
+                len(result.showtimes), result.reported_count, len(dates), result.complete,
+            )
+            return result
+
+    assert last_error is not None
+    raise last_error
+

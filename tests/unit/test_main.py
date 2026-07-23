@@ -31,16 +31,23 @@ def mock_scrapers(monkeypatch):
     monkeypatch.setattr("cinema_recs.ingest.scrape_showtimes", lambda url: empty)
     monkeypatch.setattr("cinema_recs.ingest.scrape_texas_theatre_showtimes", lambda url: empty)
     monkeypatch.setattr("cinema_recs.ingest.scrape_angelika_dallas_showtimes", lambda url: empty)
+    monkeypatch.setattr("cinema_recs.ingest.scrape_amc_stonebriar_showtimes", lambda url: empty)
 
 
-def test_bootstrap_configures_all_three_cinemas_with_correct_source_type(base_env):
+def test_bootstrap_configures_all_four_cinemas_with_correct_source_type(base_env):
     config, cinemas = main.bootstrap()
 
     by_name = {c.name: c for c in cinemas}
-    assert set(by_name) == {"Cinepolis McKinney", "Texas Theatre", "Angelika Film Center Dallas"}
+    assert set(by_name) == {
+        "Cinepolis McKinney",
+        "Texas Theatre",
+        "Angelika Film Center Dallas",
+        "AMC Stonebriar 24",
+    }
     assert by_name["Cinepolis McKinney"].source_type == "cinepolis"
     assert by_name["Texas Theatre"].source_type == "texas_theatre"
     assert by_name["Angelika Film Center Dallas"].source_type == "angelika_dallas"
+    assert by_name["AMC Stonebriar 24"].source_type == "amc_stonebriar"
 
     # init_schema was applied - the cinema table is queryable with the
     # columns bootstrap() actually populated.
@@ -76,7 +83,7 @@ def test_main_default_mode_starts_scheduler_and_runs_server(base_env, mock_scrap
     mock_start_scheduler.assert_called_once()
     args, _ = mock_start_scheduler.call_args
     config, cinemas = args
-    assert len(cinemas) == 3
+    assert len(cinemas) == 4
 
     mock_create_app.assert_called_once_with(config, cinemas)
     mock_app.run.assert_called_once_with(host="0.0.0.0", port=config.port)
