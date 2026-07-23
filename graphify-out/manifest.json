@@ -10,8 +10,8 @@
     "semantic_hash": ""
   },
   ".specify/feature.json": {
-    "mtime": 1784814237.5479677,
-    "ast_hash": "0f5847c93067b07b750fa0a4e6c51362",
+    "mtime": 1784818541.8452618,
+    "ast_hash": "cda36bf67e610eab3690806042e27902",
     "semantic_hash": ""
   },
   ".specify/init-options.json": {
@@ -155,8 +155,8 @@
     "semantic_hash": ""
   },
   "src/cinema_recs/web.py": {
-    "mtime": 1784814230.6189163,
-    "ast_hash": "a572631b8e78addb835ca167a39339c1",
+    "mtime": 1784820198.328333,
+    "ast_hash": "bbc1e0ec7359e36640f9fa5faa7ac127",
     "semantic_hash": ""
   },
   "tests/__init__.py": {
@@ -190,8 +190,8 @@
     "semantic_hash": ""
   },
   "tests/integration/test_web_view.py": {
-    "mtime": 1784814230.6197817,
-    "ast_hash": "a0fecd20af138596b73502afee24b213",
+    "mtime": 1784820056.3460662,
+    "ast_hash": "3290b88db83208652f1184f4322a90e1",
     "semantic_hash": ""
   },
   "tests/unit/__init__.py": {
@@ -727,6 +727,46 @@
   "specs/009-full-showtime-window/tasks.md": {
     "mtime": 1784816367.4462128,
     "ast_hash": "5cbe04ba7cb1a4c84e642a3856c3d7ca",
+    "semantic_hash": ""
+  },
+  "specs/010-consolidated-movie-listings/checklists/requirements.md": {
+    "mtime": 1784818595.1238015,
+    "ast_hash": "e7250ff3e9439d53fb0aa762db0cbe61",
+    "semantic_hash": ""
+  },
+  "specs/010-consolidated-movie-listings/contracts/web-view.md": {
+    "mtime": 1784818910.3367608,
+    "ast_hash": "fe3bca9d2004eba84d82a038a1bfa442",
+    "semantic_hash": ""
+  },
+  "specs/010-consolidated-movie-listings/data-model.md": {
+    "mtime": 1784818891.761816,
+    "ast_hash": "89dd8d2f38ed015439de68b1e425e5cb",
+    "semantic_hash": ""
+  },
+  "specs/010-consolidated-movie-listings/plan.md": {
+    "mtime": 1784818987.6419892,
+    "ast_hash": "0975e92088fa9a507a9e12e93a64e1d5",
+    "semantic_hash": ""
+  },
+  "specs/010-consolidated-movie-listings/quickstart.md": {
+    "mtime": 1784818926.6518505,
+    "ast_hash": "f360562ed3dc16662134240dc06917ea",
+    "semantic_hash": ""
+  },
+  "specs/010-consolidated-movie-listings/research.md": {
+    "mtime": 1784818879.6961133,
+    "ast_hash": "d9017bb7bf0dd918144f31dec0a27a64",
+    "semantic_hash": ""
+  },
+  "specs/010-consolidated-movie-listings/spec.md": {
+    "mtime": 1784818586.4973912,
+    "ast_hash": "12f4a5318bb7ef213cf4a31cf46988da",
+    "semantic_hash": ""
+  },
+  "specs/010-consolidated-movie-listings/tasks.md": {
+    "mtime": 1784820166.6259384,
+    "ast_hash": "e8f8849648ab05a98f0ee9b1749f13af",
     "semantic_hash": ""
   }
 }

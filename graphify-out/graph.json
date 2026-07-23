@@ -614,8 +614,8 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "src_cinema_recs_config_config",
-      "community": 2,
-      "community_name": "run_notifications",
+      "community": 0,
+      "community_name": "storage.py",
       "norm_label": "config"
     },
     {
@@ -625,8 +625,8 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "src_cinema_recs_config_config_db_path",
-      "community": 2,
-      "community_name": "run_notifications",
+      "community": 0,
+      "community_name": "storage.py",
       "norm_label": ".db_path()"
     },
     {
@@ -691,8 +691,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_cinema_recs_discord_client",
-      "community": 2,
-      "community_name": "run_notifications",
+      "community": 0,
+      "community_name": "storage.py",
       "norm_label": "discord_client.py"
     },
     {
@@ -702,8 +702,8 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "src_cinema_recs_discord_client_send_notification",
-      "community": 2,
-      "community_name": "run_notifications",
+      "community": 0,
+      "community_name": "storage.py",
       "norm_label": "send_notification()"
     },
     {
@@ -713,8 +713,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "src_cinema_recs_discord_client_rationale_5",
-      "community": 2,
-      "community_name": "run_notifications",
+      "community": 0,
+      "community_name": "storage.py",
       "norm_label": "post a plain-text message to a discord webhook. raises on any     non-2xx respon"
     },
     {
@@ -1098,8 +1098,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_cinema_recs_notify",
-      "community": 2,
-      "community_name": "run_notifications",
+      "community": 0,
+      "community_name": "storage.py",
       "norm_label": "notify.py"
     },
     {
@@ -1109,8 +1109,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "src_cinema_recs_notify_build_message",
-      "community": 2,
-      "community_name": "run_notifications",
+      "community": 0,
+      "community_name": "storage.py",
       "norm_label": "_build_message()"
     },
     {
@@ -1120,8 +1120,8 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "src_cinema_recs_notify_build_cancelled_message",
-      "community": 2,
-      "community_name": "run_notifications",
+      "community": 0,
+      "community_name": "storage.py",
       "norm_label": "_build_cancelled_message()"
     },
     {
@@ -1131,8 +1131,8 @@
       "source_location": "L32",
       "_origin": "ast",
       "id": "src_cinema_recs_notify_build_rescheduled_message",
-      "community": 2,
-      "community_name": "run_notifications",
+      "community": 0,
+      "community_name": "storage.py",
       "norm_label": "_build_rescheduled_message()"
     },
     {
@@ -1142,8 +1142,8 @@
       "source_location": "L43",
       "_origin": "ast",
       "id": "src_cinema_recs_notify_evaluate_disappearances",
-      "community": 2,
-      "community_name": "run_notifications",
+      "community": 0,
+      "community_name": "storage.py",
       "norm_label": "_evaluate_disappearances()"
     },
     {
@@ -1164,8 +1164,8 @@
       "source_location": "L44",
       "_origin": "ast",
       "id": "src_cinema_recs_notify_rationale_44",
-      "community": 2,
-      "community_name": "run_notifications",
+      "community": 0,
+      "community_name": "storage.py",
       "norm_label": "follow up on movies already notified as recommended (feature 004):     when the"
     },
     {
@@ -1208,8 +1208,8 @@
       "source_location": "L34",
       "_origin": "ast",
       "id": "src_cinema_recs_recommend_ensure_letterboxd_data_cached",
-      "community": 4,
-      "community_name": "recommend.py",
+      "community": 0,
+      "community_name": "storage.py",
       "norm_label": "_ensure_letterboxd_data_cached()"
     },
     {
@@ -1241,8 +1241,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_cinema_recs_scheduler",
-      "community": 3,
-      "community_name": "run_ingestion",
+      "community": 0,
+      "community_name": "storage.py",
       "norm_label": "scheduler.py"
     },
     {
@@ -1252,8 +1252,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "src_cinema_recs_scheduler_start_scheduler",
-      "community": 3,
-      "community_name": "run_ingestion",
+      "community": 0,
+      "community_name": "storage.py",
       "norm_label": "start_scheduler()"
     },
     {
@@ -1263,8 +1263,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "backgroundscheduler",
-      "community": 3,
-      "community_name": "run_ingestion",
+      "community": 0,
+      "community_name": "storage.py",
       "norm_label": "backgroundscheduler"
     },
     {
@@ -1274,8 +1274,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_cinema_recs_scraper",
-      "community": 6,
-      "community_name": "scraper.py",
+      "community": 81,
+      "community_name": "Quickstart: Showtime Recommendation Rules",
       "norm_label": "scraper.py"
     },
     {
@@ -1494,8 +1494,8 @@
       "source_location": "L452",
       "_origin": "ast",
       "id": "src_cinema_recs_scraper_parse_listing_time",
-      "community": 6,
-      "community_name": "scraper.py",
+      "community": 81,
+      "community_name": "Quickstart: Showtime Recommendation Rules",
       "norm_label": "_parse_listing_time()"
     },
     {
@@ -1505,8 +1505,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "src_cinema_recs_scraper_py_time",
-      "community": 6,
-      "community_name": "scraper.py",
+      "community": 81,
+      "community_name": "Quickstart: Showtime Recommendation Rules",
       "norm_label": "time"
     },
     {
@@ -1538,8 +1538,8 @@
       "source_location": "L574",
       "_origin": "ast",
       "id": "src_cinema_recs_scraper_fetch_texas_theatre_html",
-      "community": 6,
-      "community_name": "scraper.py",
+      "community": 81,
+      "community_name": "Quickstart: Showtime Recommendation Rules",
       "norm_label": "fetch_texas_theatre_html()"
     },
     {
@@ -1582,8 +1582,8 @@
       "source_location": "L743",
       "_origin": "ast",
       "id": "src_cinema_recs_scraper_parse_angelika_datetime",
-      "community": 27,
-      "community_name": "test_angelika_dallas_scraper.py",
+      "community": 81,
+      "community_name": "Quickstart: Showtime Recommendation Rules",
       "norm_label": "_parse_angelika_datetime()"
     },
     {
@@ -1593,8 +1593,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "src_cinema_recs_scraper_py_datetime",
-      "community": 27,
-      "community_name": "test_angelika_dallas_scraper.py",
+      "community": 81,
+      "community_name": "Quickstart: Showtime Recommendation Rules",
       "norm_label": "datetime"
     },
     {
@@ -1659,8 +1659,8 @@
       "source_location": "L922",
       "_origin": "ast",
       "id": "src_cinema_recs_scraper_parse_angelika_dallas_films",
-      "community": 27,
-      "community_name": "test_angelika_dallas_scraper.py",
+      "community": 81,
+      "community_name": "Quickstart: Showtime Recommendation Rules",
       "norm_label": "parse_angelika_dallas_films()"
     },
     {
@@ -1791,8 +1791,8 @@
       "source_location": "L575",
       "_origin": "ast",
       "id": "src_cinema_recs_scraper_rationale_575",
-      "community": 6,
-      "community_name": "scraper.py",
+      "community": 81,
+      "community_name": "Quickstart: Showtime Recommendation Rules",
       "norm_label": "fetch a single calendar page's html, launching its own browser/     context. kep"
     },
     {
@@ -1890,8 +1890,8 @@
       "source_location": "L923",
       "_origin": "ast",
       "id": "src_cinema_recs_scraper_rationale_923",
-      "community": 27,
-      "community_name": "test_angelika_dallas_scraper.py",
+      "community": 81,
+      "community_name": "Quickstart: Showtime Recommendation Rules",
       "norm_label": "map a `/films` api response into showtime records.      the endpoint returns fil"
     },
     {
@@ -2610,10 +2610,21 @@
       "norm_label": "web.py"
     },
     {
+      "label": "_group_by_earliest_showtime_per_movie()",
+      "file_type": "code",
+      "source_file": "src/cinema_recs/web.py",
+      "source_location": "L107",
+      "_origin": "ast",
+      "id": "src_cinema_recs_web_group_by_earliest_showtime_per_movie",
+      "community": 0,
+      "community_name": "storage.py",
+      "norm_label": "_group_by_earliest_showtime_per_movie()"
+    },
+    {
       "label": "create_app()",
       "file_type": "code",
       "source_file": "src/cinema_recs/web.py",
-      "source_location": "L87",
+      "source_location": "L121",
       "_origin": "ast",
       "id": "src_cinema_recs_web_create_app",
       "community": 0,
@@ -2630,6 +2641,17 @@
       "community": 0,
       "community_name": "storage.py",
       "norm_label": "flask"
+    },
+    {
+      "label": "One Showtime per distinct movie_title, keeping the first occurrence.      `list_",
+      "file_type": "rationale",
+      "source_file": "src/cinema_recs/web.py",
+      "source_location": "L108",
+      "_origin": "ast",
+      "id": "src_cinema_recs_web_rationale_108",
+      "community": 0,
+      "community_name": "storage.py",
+      "norm_label": "one showtime per distinct movie_title, keeping the first occurrence.      `list_"
     },
     {
       "label": "tests/__init__.py",
@@ -2946,8 +2968,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "tests_integration_test_web_view_config",
-      "community": 2,
-      "community_name": "run_notifications",
+      "community": 5,
+      "community_name": "test_web_view.py",
       "norm_label": "config()"
     },
     {
@@ -2995,10 +3017,54 @@
       "norm_label": "test_listing_shows_ingested_showtimes()"
     },
     {
-      "label": "test_health_shows_no_runs_yet()",
+      "label": "test_listing_consolidates_multiple_showtimes_for_same_movie_at_same_venue()",
       "file_type": "code",
       "source_file": "tests/integration/test_web_view.py",
       "source_location": "L59",
+      "_origin": "ast",
+      "id": "tests_integration_test_web_view_test_listing_consolidates_multiple_showtimes_for_same_movie_at_same_venue",
+      "community": 5,
+      "community_name": "test_web_view.py",
+      "norm_label": "test_listing_consolidates_multiple_showtimes_for_same_movie_at_same_venue()"
+    },
+    {
+      "label": "test_listing_shows_one_row_per_venue_for_movie_playing_at_multiple_venues()",
+      "file_type": "code",
+      "source_file": "tests/integration/test_web_view.py",
+      "source_location": "L84",
+      "_origin": "ast",
+      "id": "tests_integration_test_web_view_test_listing_shows_one_row_per_venue_for_movie_playing_at_multiple_venues",
+      "community": 5,
+      "community_name": "test_web_view.py",
+      "norm_label": "test_listing_shows_one_row_per_venue_for_movie_playing_at_multiple_venues()"
+    },
+    {
+      "label": "test_listing_shows_ticket_link_when_present()",
+      "file_type": "code",
+      "source_file": "tests/integration/test_web_view.py",
+      "source_location": "L110",
+      "_origin": "ast",
+      "id": "tests_integration_test_web_view_test_listing_shows_ticket_link_when_present",
+      "community": 5,
+      "community_name": "test_web_view.py",
+      "norm_label": "test_listing_shows_ticket_link_when_present()"
+    },
+    {
+      "label": "test_listing_shows_dash_when_ticket_link_absent()",
+      "file_type": "code",
+      "source_file": "tests/integration/test_web_view.py",
+      "source_location": "L123",
+      "_origin": "ast",
+      "id": "tests_integration_test_web_view_test_listing_shows_dash_when_ticket_link_absent",
+      "community": 5,
+      "community_name": "test_web_view.py",
+      "norm_label": "test_listing_shows_dash_when_ticket_link_absent()"
+    },
+    {
+      "label": "test_health_shows_no_runs_yet()",
+      "file_type": "code",
+      "source_file": "tests/integration/test_web_view.py",
+      "source_location": "L136",
       "_origin": "ast",
       "id": "tests_integration_test_web_view_test_health_shows_no_runs_yet",
       "community": 5,
@@ -3009,7 +3075,7 @@
       "label": "test_health_shows_app_version_when_set()",
       "file_type": "code",
       "source_file": "tests/integration/test_web_view.py",
-      "source_location": "L65",
+      "source_location": "L142",
       "_origin": "ast",
       "id": "tests_integration_test_web_view_test_health_shows_app_version_when_set",
       "community": 5,
@@ -3020,7 +3086,7 @@
       "label": "test_health_shows_dev_when_app_version_unset()",
       "file_type": "code",
       "source_file": "tests/integration/test_web_view.py",
-      "source_location": "L74",
+      "source_location": "L151",
       "_origin": "ast",
       "id": "tests_integration_test_web_view_test_health_shows_dev_when_app_version_unset",
       "community": 5,
@@ -3031,7 +3097,7 @@
       "label": "test_health_shows_success_outcome()",
       "file_type": "code",
       "source_file": "tests/integration/test_web_view.py",
-      "source_location": "L83",
+      "source_location": "L160",
       "_origin": "ast",
       "id": "tests_integration_test_web_view_test_health_shows_success_outcome",
       "community": 5,
@@ -3042,7 +3108,7 @@
       "label": "test_listing_shows_enriched_fields_for_matched_movie()",
       "file_type": "code",
       "source_file": "tests/integration/test_web_view.py",
-      "source_location": "L96",
+      "source_location": "L173",
       "_origin": "ast",
       "id": "tests_integration_test_web_view_test_listing_shows_enriched_fields_for_matched_movie",
       "community": 5,
@@ -3050,10 +3116,43 @@
       "norm_label": "test_listing_shows_enriched_fields_for_matched_movie()"
     },
     {
+      "label": "test_listing_shows_letterboxd_rating_link_when_available()",
+      "file_type": "code",
+      "source_file": "tests/integration/test_web_view.py",
+      "source_location": "L201",
+      "_origin": "ast",
+      "id": "tests_integration_test_web_view_test_listing_shows_letterboxd_rating_link_when_available",
+      "community": 5,
+      "community_name": "test_web_view.py",
+      "norm_label": "test_listing_shows_letterboxd_rating_link_when_available()"
+    },
+    {
+      "label": "test_listing_shows_dash_when_no_letterboxd_match()",
+      "file_type": "code",
+      "source_file": "tests/integration/test_web_view.py",
+      "source_location": "L218",
+      "_origin": "ast",
+      "id": "tests_integration_test_web_view_test_listing_shows_dash_when_no_letterboxd_match",
+      "community": 5,
+      "community_name": "test_web_view.py",
+      "norm_label": "test_listing_shows_dash_when_no_letterboxd_match()"
+    },
+    {
+      "label": "test_listing_shows_dash_when_letterboxd_slug_resolved_but_rating_missing()",
+      "file_type": "code",
+      "source_file": "tests/integration/test_web_view.py",
+      "source_location": "L233",
+      "_origin": "ast",
+      "id": "tests_integration_test_web_view_test_listing_shows_dash_when_letterboxd_slug_resolved_but_rating_missing",
+      "community": 5,
+      "community_name": "test_web_view.py",
+      "norm_label": "test_listing_shows_dash_when_letterboxd_slug_resolved_but_rating_missing()"
+    },
+    {
       "label": "test_listing_renders_normally_for_unmatched_movie()",
       "file_type": "code",
       "source_file": "tests/integration/test_web_view.py",
-      "source_location": "L115",
+      "source_location": "L253",
       "_origin": "ast",
       "id": "tests_integration_test_web_view_test_listing_renders_normally_for_unmatched_movie",
       "community": 5,
@@ -3064,7 +3163,7 @@
       "label": "test_listing_shows_recommended_badge_and_reasons()",
       "file_type": "code",
       "source_file": "tests/integration/test_web_view.py",
-      "source_location": "L128",
+      "source_location": "L266",
       "_origin": "ast",
       "id": "tests_integration_test_web_view_test_listing_shows_recommended_badge_and_reasons",
       "community": 5,
@@ -3075,7 +3174,7 @@
       "label": "test_listing_renders_normally_for_non_recommended_movie()",
       "file_type": "code",
       "source_file": "tests/integration/test_web_view.py",
-      "source_location": "L143",
+      "source_location": "L281",
       "_origin": "ast",
       "id": "tests_integration_test_web_view_test_listing_renders_normally_for_non_recommended_movie",
       "community": 5,
@@ -3086,7 +3185,7 @@
       "label": "test_listing_renders_normally_for_not_yet_evaluated_movie()",
       "file_type": "code",
       "source_file": "tests/integration/test_web_view.py",
-      "source_location": "L158",
+      "source_location": "L296",
       "_origin": "ast",
       "id": "tests_integration_test_web_view_test_listing_renders_normally_for_not_yet_evaluated_movie",
       "community": 5,
@@ -3097,7 +3196,7 @@
       "label": "test_health_shows_failure_distinct_from_zero_success()",
       "file_type": "code",
       "source_file": "tests/integration/test_web_view.py",
-      "source_location": "L171",
+      "source_location": "L309",
       "_origin": "ast",
       "id": "tests_integration_test_web_view_test_health_shows_failure_distinct_from_zero_success",
       "community": 5,
@@ -3108,7 +3207,7 @@
       "label": "test_health_shows_partial_outcome_distinct_from_success()",
       "file_type": "code",
       "source_file": "tests/integration/test_web_view.py",
-      "source_location": "L184",
+      "source_location": "L322",
       "_origin": "ast",
       "id": "tests_integration_test_web_view_test_health_shows_partial_outcome_distinct_from_success",
       "community": 5,
@@ -3144,8 +3243,8 @@
       "source_location": "L118",
       "_origin": "ast",
       "id": "tests_unit_test_angelika_dallas_scraper_test_parse_angelika_datetime_normalizes_offset_without_minutes",
-      "community": 27,
-      "community_name": "test_angelika_dallas_scraper.py",
+      "community": 81,
+      "community_name": "Quickstart: Showtime Recommendation Rules",
       "norm_label": "test_parse_angelika_datetime_normalizes_offset_without_minutes()"
     },
     {
@@ -3155,8 +3254,8 @@
       "source_location": "L125",
       "_origin": "ast",
       "id": "tests_unit_test_angelika_dallas_scraper_test_parse_angelika_datetime_rejects_garbage",
-      "community": 27,
-      "community_name": "test_angelika_dallas_scraper.py",
+      "community": 81,
+      "community_name": "Quickstart: Showtime Recommendation Rules",
       "norm_label": "test_parse_angelika_datetime_rejects_garbage()"
     },
     {
@@ -3166,8 +3265,8 @@
       "source_location": "L129",
       "_origin": "ast",
       "id": "tests_unit_test_angelika_dallas_scraper_test_parse_angelika_dallas_films_extracts_showtimes_across_movies",
-      "community": 27,
-      "community_name": "test_angelika_dallas_scraper.py",
+      "community": 81,
+      "community_name": "Quickstart: Showtime Recommendation Rules",
       "norm_label": "test_parse_angelika_dallas_films_extracts_showtimes_across_movies()"
     },
     {
@@ -3177,8 +3276,8 @@
       "source_location": "L152",
       "_origin": "ast",
       "id": "tests_unit_test_angelika_dallas_scraper_test_parse_angelika_dallas_films_skips_missing_title_or_unparseable_time",
-      "community": 27,
-      "community_name": "test_angelika_dallas_scraper.py",
+      "community": 81,
+      "community_name": "Quickstart: Showtime Recommendation Rules",
       "norm_label": "test_parse_angelika_dallas_films_skips_missing_title_or_unparseable_time()"
     },
     {
@@ -3397,8 +3496,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "tests_unit_test_discord_client",
-      "community": 2,
-      "community_name": "run_notifications",
+      "community": 0,
+      "community_name": "storage.py",
       "norm_label": "test_discord_client.py"
     },
     {
@@ -3408,8 +3507,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "tests_unit_test_discord_client_test_send_notification_posts_content_payload",
-      "community": 2,
-      "community_name": "run_notifications",
+      "community": 0,
+      "community_name": "storage.py",
       "norm_label": "test_send_notification_posts_content_payload()"
     },
     {
@@ -3419,8 +3518,8 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "tests_unit_test_discord_client_test_send_notification_raises_on_non_2xx",
-      "community": 2,
-      "community_name": "run_notifications",
+      "community": 0,
+      "community_name": "storage.py",
       "norm_label": "test_send_notification_raises_on_non_2xx()"
     },
     {
@@ -3430,8 +3529,8 @@
       "source_location": "L33",
       "_origin": "ast",
       "id": "tests_unit_test_discord_client_test_send_notification_raises_on_connection_error",
-      "community": 2,
-      "community_name": "run_notifications",
+      "community": 0,
+      "community_name": "storage.py",
       "norm_label": "test_send_notification_raises_on_connection_error()"
     },
     {
@@ -3562,8 +3661,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "tests_unit_test_ingest",
-      "community": 45,
-      "community_name": "test_ingest.py",
+      "community": 3,
+      "community_name": "run_ingestion",
       "norm_label": "test_ingest.py"
     },
     {
@@ -3573,8 +3672,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "tests_unit_test_ingest_result",
-      "community": 45,
-      "community_name": "test_ingest.py",
+      "community": 3,
+      "community_name": "run_ingestion",
       "norm_label": "_result()"
     },
     {
@@ -3584,8 +3683,8 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "tests_unit_test_ingest_db_path",
-      "community": 45,
-      "community_name": "test_ingest.py",
+      "community": 3,
+      "community_name": "run_ingestion",
       "norm_label": "db_path()"
     },
     {
@@ -3595,8 +3694,8 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "tests_unit_test_ingest_cinema",
-      "community": 45,
-      "community_name": "test_ingest.py",
+      "community": 3,
+      "community_name": "run_ingestion",
       "norm_label": "cinema()"
     },
     {
@@ -3606,8 +3705,8 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "tests_unit_test_ingest_test_run_ingestion_reconciles_removed_showtime",
-      "community": 45,
-      "community_name": "test_ingest.py",
+      "community": 3,
+      "community_name": "run_ingestion",
       "norm_label": "test_run_ingestion_reconciles_removed_showtime()"
     },
     {
@@ -3617,8 +3716,8 @@
       "source_location": "L54",
       "_origin": "ast",
       "id": "tests_unit_test_ingest_test_run_ingestion_reactivates_reappearing_showtime",
-      "community": 45,
-      "community_name": "test_ingest.py",
+      "community": 3,
+      "community_name": "run_ingestion",
       "norm_label": "test_run_ingestion_reactivates_reappearing_showtime()"
     },
     {
@@ -3628,8 +3727,8 @@
       "source_location": "L71",
       "_origin": "ast",
       "id": "tests_unit_test_ingest_test_run_ingestion_persists_ticket_url_from_scraped_showtime",
-      "community": 45,
-      "community_name": "test_ingest.py",
+      "community": 3,
+      "community_name": "run_ingestion",
       "norm_label": "test_run_ingestion_persists_ticket_url_from_scraped_showtime()"
     },
     {
@@ -3639,8 +3738,8 @@
       "source_location": "L84",
       "_origin": "ast",
       "id": "tests_unit_test_ingest_test_run_ingestion_records_failure_on_scrape_error",
-      "community": 45,
-      "community_name": "test_ingest.py",
+      "community": 3,
+      "community_name": "run_ingestion",
       "norm_label": "test_run_ingestion_records_failure_on_scrape_error()"
     },
     {
@@ -3650,8 +3749,8 @@
       "source_location": "L97",
       "_origin": "ast",
       "id": "tests_unit_test_ingest_test_run_ingestion_distinguishes_zero_found_from_failure",
-      "community": 45,
-      "community_name": "test_ingest.py",
+      "community": 3,
+      "community_name": "run_ingestion",
       "norm_label": "test_run_ingestion_distinguishes_zero_found_from_failure()"
     },
     {
@@ -3661,8 +3760,8 @@
       "source_location": "L106",
       "_origin": "ast",
       "id": "tests_unit_test_ingest_test_run_ingestion_reports_partial_when_entries_are_skipped",
-      "community": 45,
-      "community_name": "test_ingest.py",
+      "community": 3,
+      "community_name": "run_ingestion",
       "norm_label": "test_run_ingestion_reports_partial_when_entries_are_skipped()"
     },
     {
@@ -3672,8 +3771,8 @@
       "source_location": "L122",
       "_origin": "ast",
       "id": "tests_unit_test_ingest_test_run_ingestion_success_when_reported_count_matches",
-      "community": 45,
-      "community_name": "test_ingest.py",
+      "community": 3,
+      "community_name": "run_ingestion",
       "norm_label": "test_run_ingestion_success_when_reported_count_matches()"
     },
     {
@@ -6906,8 +7005,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "readme",
-      "community": 50,
-      "community_name": "README.md",
+      "community": 78,
+      "community_name": "Data Model: Cinepolis McKinney Showtime Ingestion",
       "norm_label": "readme.md"
     },
     {
@@ -7032,7 +7131,7 @@
       "norm_label": "notes"
     },
     {
-      "label": "web-view.md",
+      "label": "001-cinepolis-showtime-ingestion/contracts/web-view.md",
       "file_type": "document",
       "source_file": "specs/001-cinepolis-showtime-ingestion/contracts/web-view.md",
       "source_location": "L1",
@@ -7040,7 +7139,7 @@
       "id": "specs_001_cinepolis_showtime_ingestion_contracts_web_view",
       "community": 77,
       "community_name": "Web View Contract",
-      "norm_label": "web-view.md"
+      "norm_label": "001-cinepolis-showtime-ingestion/contracts/web-view.md"
     },
     {
       "label": "Web View Contract",
@@ -7093,8 +7192,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "specs_001_cinepolis_showtime_ingestion_data_model",
-      "community": 50,
-      "community_name": "README.md",
+      "community": 78,
+      "community_name": "Data Model: Cinepolis McKinney Showtime Ingestion",
       "norm_label": "001-cinepolis-showtime-ingestion/data-model.md"
     },
     {
@@ -7258,8 +7357,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "specs_001_cinepolis_showtime_ingestion_quickstart",
-      "community": 50,
-      "community_name": "README.md",
+      "community": 78,
+      "community_name": "Data Model: Cinepolis McKinney Showtime Ingestion",
       "norm_label": "001-cinepolis-showtime-ingestion/quickstart.md"
     },
     {
@@ -8061,8 +8160,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "specs_002_tmdb_metadata_enrichment_data_model_data_model_movie_metadata_enrichment_via_tmdb",
-      "community": 79,
-      "community_name": "Data Model: Movie Metadata Enrichment via TMDB",
+      "community": 65,
+      "community_name": "002-tmdb-metadata-enrichment/quickstart.md",
       "norm_label": "data model: movie metadata enrichment via tmdb"
     },
     {
@@ -8072,8 +8171,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "specs_002_tmdb_metadata_enrichment_data_model_movie_metadata",
-      "community": 79,
-      "community_name": "Data Model: Movie Metadata Enrichment via TMDB",
+      "community": 65,
+      "community_name": "002-tmdb-metadata-enrichment/quickstart.md",
       "norm_label": "movie metadata"
     },
     {
@@ -8083,8 +8182,8 @@
       "source_location": "L32",
       "_origin": "ast",
       "id": "specs_002_tmdb_metadata_enrichment_data_model_enrichment_attempt",
-      "community": 79,
-      "community_name": "Data Model: Movie Metadata Enrichment via TMDB",
+      "community": 65,
+      "community_name": "002-tmdb-metadata-enrichment/quickstart.md",
       "norm_label": "enrichment attempt"
     },
     {
@@ -8094,8 +8193,8 @@
       "source_location": "L45",
       "_origin": "ast",
       "id": "specs_002_tmdb_metadata_enrichment_data_model_relationships",
-      "community": 79,
-      "community_name": "Data Model: Movie Metadata Enrichment via TMDB",
+      "community": 65,
+      "community_name": "002-tmdb-metadata-enrichment/quickstart.md",
       "norm_label": "relationships"
     },
     {
@@ -8105,8 +8204,8 @@
       "source_location": "L57",
       "_origin": "ast",
       "id": "specs_002_tmdb_metadata_enrichment_data_model_cross_feature_note_feature_003",
-      "community": 79,
-      "community_name": "Data Model: Movie Metadata Enrichment via TMDB",
+      "community": 65,
+      "community_name": "002-tmdb-metadata-enrichment/quickstart.md",
       "norm_label": "cross-feature note (feature 003)"
     },
     {
@@ -9106,8 +9205,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "specs_003_showtime_recommendation_rules_quickstart_quickstart_showtime_recommendation_rules",
-      "community": 81,
-      "community_name": "Quickstart: Showtime Recommendation Rules",
+      "community": 66,
+      "community_name": "003-showtime-recommendation-rules/quickstart.md",
       "norm_label": "quickstart: showtime recommendation rules"
     },
     {
@@ -9117,8 +9216,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "specs_003_showtime_recommendation_rules_quickstart_prerequisites",
-      "community": 81,
-      "community_name": "Quickstart: Showtime Recommendation Rules",
+      "community": 66,
+      "community_name": "003-showtime-recommendation-rules/quickstart.md",
       "norm_label": "prerequisites"
     },
     {
@@ -9128,8 +9227,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "specs_003_showtime_recommendation_rules_quickstart_configuration_new_environment_variables_both_optional",
-      "community": 81,
-      "community_name": "Quickstart: Showtime Recommendation Rules",
+      "community": 66,
+      "community_name": "003-showtime-recommendation-rules/quickstart.md",
       "norm_label": "configuration (new environment variables, both optional)"
     },
     {
@@ -9139,8 +9238,8 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "specs_003_showtime_recommendation_rules_quickstart_build_and_run",
-      "community": 81,
-      "community_name": "Quickstart: Showtime Recommendation Rules",
+      "community": 66,
+      "community_name": "003-showtime-recommendation-rules/quickstart.md",
       "norm_label": "build and run"
     },
     {
@@ -9150,8 +9249,8 @@
       "source_location": "L46",
       "_origin": "ast",
       "id": "specs_003_showtime_recommendation_rules_quickstart_validate_it_works",
-      "community": 81,
-      "community_name": "Quickstart: Showtime Recommendation Rules",
+      "community": 66,
+      "community_name": "003-showtime-recommendation-rules/quickstart.md",
       "norm_label": "validate it works"
     },
     {
@@ -12637,7 +12736,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "specs_007_unraid_cicd_autodeploy_quickstart_quickstart_automatic_ci_cd_deployment_to_unraid",
-      "community": 28,
+      "community": 93,
       "community_name": "One-time setup",
       "norm_label": "quickstart: automatic ci/cd deployment to unraid"
     },
@@ -12648,7 +12747,7 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "specs_007_unraid_cicd_autodeploy_quickstart_prerequisites",
-      "community": 28,
+      "community": 93,
       "community_name": "One-time setup",
       "norm_label": "prerequisites"
     },
@@ -12659,7 +12758,7 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "specs_007_unraid_cicd_autodeploy_quickstart_one_time_setup",
-      "community": 28,
+      "community": 93,
       "community_name": "One-time setup",
       "norm_label": "one-time setup"
     },
@@ -12670,7 +12769,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "specs_007_unraid_cicd_autodeploy_quickstart_1_github_actions_no_secrets_to_create",
-      "community": 28,
+      "community": 93,
       "community_name": "One-time setup",
       "norm_label": "1. github actions (no secrets to create)"
     },
@@ -12681,7 +12780,7 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "specs_007_unraid_cicd_autodeploy_quickstart_2_make_the_ghcr_package_public_one_time_after_the_first_push",
-      "community": 28,
+      "community": 93,
       "community_name": "One-time setup",
       "norm_label": "2. make the ghcr package public (one-time, after the first push)"
     },
@@ -12692,7 +12791,7 @@
       "source_location": "L30",
       "_origin": "ast",
       "id": "specs_007_unraid_cicd_autodeploy_quickstart_3_install_watchtower_on_tower_via_unraid_community_applications",
-      "community": 28,
+      "community": 93,
       "community_name": "One-time setup",
       "norm_label": "3. install watchtower on tower (via unraid community applications)"
     },
@@ -12703,7 +12802,7 @@
       "source_location": "L40",
       "_origin": "ast",
       "id": "specs_007_unraid_cicd_autodeploy_quickstart_4_redeploy_cinema_recs_with_the_updated_docker_compose_yml",
-      "community": 28,
+      "community": 93,
       "community_name": "One-time setup",
       "norm_label": "4. redeploy `cinema-recs` with the updated `docker-compose.yml`"
     },
@@ -12714,7 +12813,7 @@
       "source_location": "L47",
       "_origin": "ast",
       "id": "specs_007_unraid_cicd_autodeploy_quickstart_validate_it_works",
-      "community": 28,
+      "community": 93,
       "community_name": "One-time setup",
       "norm_label": "validate it works"
     },
@@ -15016,6 +15115,776 @@
       "community": 24,
       "community_name": "Tasks: Full Showtime Window Ingestion",
       "norm_label": "notes"
+    },
+    {
+      "label": "010-consolidated-movie-listings/checklists/requirements.md",
+      "file_type": "document",
+      "source_file": "specs/010-consolidated-movie-listings/checklists/requirements.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "specs_010_consolidated_movie_listings_checklists_requirements",
+      "community": 45,
+      "community_name": "test_ingest.py",
+      "norm_label": "010-consolidated-movie-listings/checklists/requirements.md"
+    },
+    {
+      "label": "Specification Quality Checklist: Consolidated Movie Listings with Ticket and Letterboxd Links",
+      "file_type": "document",
+      "source_file": "specs/010-consolidated-movie-listings/checklists/requirements.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "specs_010_consolidated_movie_listings_checklists_requirements_specification_quality_checklist_consolidated_movie_listings_with_ticket_and_letterboxd_links",
+      "community": 45,
+      "community_name": "test_ingest.py",
+      "norm_label": "specification quality checklist: consolidated movie listings with ticket and letterboxd links"
+    },
+    {
+      "label": "Content Quality",
+      "file_type": "document",
+      "source_file": "specs/010-consolidated-movie-listings/checklists/requirements.md",
+      "source_location": "L7",
+      "_origin": "ast",
+      "id": "specs_010_consolidated_movie_listings_checklists_requirements_content_quality",
+      "community": 45,
+      "community_name": "test_ingest.py",
+      "norm_label": "content quality"
+    },
+    {
+      "label": "Requirement Completeness",
+      "file_type": "document",
+      "source_file": "specs/010-consolidated-movie-listings/checklists/requirements.md",
+      "source_location": "L14",
+      "_origin": "ast",
+      "id": "specs_010_consolidated_movie_listings_checklists_requirements_requirement_completeness",
+      "community": 45,
+      "community_name": "test_ingest.py",
+      "norm_label": "requirement completeness"
+    },
+    {
+      "label": "Feature Readiness",
+      "file_type": "document",
+      "source_file": "specs/010-consolidated-movie-listings/checklists/requirements.md",
+      "source_location": "L25",
+      "_origin": "ast",
+      "id": "specs_010_consolidated_movie_listings_checklists_requirements_feature_readiness",
+      "community": 45,
+      "community_name": "test_ingest.py",
+      "norm_label": "feature readiness"
+    },
+    {
+      "label": "Notes",
+      "file_type": "document",
+      "source_file": "specs/010-consolidated-movie-listings/checklists/requirements.md",
+      "source_location": "L32",
+      "_origin": "ast",
+      "id": "specs_010_consolidated_movie_listings_checklists_requirements_notes",
+      "community": 45,
+      "community_name": "test_ingest.py",
+      "norm_label": "notes"
+    },
+    {
+      "label": "010-consolidated-movie-listings/contracts/web-view.md",
+      "file_type": "document",
+      "source_file": "specs/010-consolidated-movie-listings/contracts/web-view.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "specs_010_consolidated_movie_listings_contracts_web_view",
+      "community": 77,
+      "community_name": "Web View Contract",
+      "norm_label": "010-consolidated-movie-listings/contracts/web-view.md"
+    },
+    {
+      "label": "Web View Contract (updated by feature 010)",
+      "file_type": "document",
+      "source_file": "specs/010-consolidated-movie-listings/contracts/web-view.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "specs_010_consolidated_movie_listings_contracts_web_view_web_view_contract_updated_by_feature_010",
+      "community": 77,
+      "community_name": "Web View Contract",
+      "norm_label": "web view contract (updated by feature 010)"
+    },
+    {
+      "label": "`GET /`",
+      "file_type": "document",
+      "source_file": "specs/010-consolidated-movie-listings/contracts/web-view.md",
+      "source_location": "L8",
+      "_origin": "ast",
+      "id": "specs_010_consolidated_movie_listings_contracts_web_view_get",
+      "community": 77,
+      "community_name": "Web View Contract",
+      "norm_label": "`get /`"
+    },
+    {
+      "label": "Out of scope for this contract",
+      "file_type": "document",
+      "source_file": "specs/010-consolidated-movie-listings/contracts/web-view.md",
+      "source_location": "L35",
+      "_origin": "ast",
+      "id": "specs_010_consolidated_movie_listings_contracts_web_view_out_of_scope_for_this_contract",
+      "community": 77,
+      "community_name": "Web View Contract",
+      "norm_label": "out of scope for this contract"
+    },
+    {
+      "label": "010-consolidated-movie-listings/data-model.md",
+      "file_type": "document",
+      "source_file": "specs/010-consolidated-movie-listings/data-model.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "specs_010_consolidated_movie_listings_data_model",
+      "community": 77,
+      "community_name": "Web View Contract",
+      "norm_label": "010-consolidated-movie-listings/data-model.md"
+    },
+    {
+      "label": "Data Model: Consolidated Movie Listings with Ticket and Letterboxd Links",
+      "file_type": "document",
+      "source_file": "specs/010-consolidated-movie-listings/data-model.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "specs_010_consolidated_movie_listings_data_model_data_model_consolidated_movie_listings_with_ticket_and_letterboxd_links",
+      "community": 77,
+      "community_name": "Web View Contract",
+      "norm_label": "data model: consolidated movie listings with ticket and letterboxd links"
+    },
+    {
+      "label": "Existing entities used (unchanged)",
+      "file_type": "document",
+      "source_file": "specs/010-consolidated-movie-listings/data-model.md",
+      "source_location": "L7",
+      "_origin": "ast",
+      "id": "specs_010_consolidated_movie_listings_data_model_existing_entities_used_unchanged",
+      "community": 77,
+      "community_name": "Web View Contract",
+      "norm_label": "existing entities used (unchanged)"
+    },
+    {
+      "label": "New internal (non-persisted) concept: consolidated listing row",
+      "file_type": "document",
+      "source_file": "specs/010-consolidated-movie-listings/data-model.md",
+      "source_location": "L16",
+      "_origin": "ast",
+      "id": "specs_010_consolidated_movie_listings_data_model_new_internal_non_persisted_concept_consolidated_listing_row",
+      "community": 77,
+      "community_name": "Web View Contract",
+      "norm_label": "new internal (non-persisted) concept: consolidated listing row"
+    },
+    {
+      "label": "Template rendering changes",
+      "file_type": "document",
+      "source_file": "specs/010-consolidated-movie-listings/data-model.md",
+      "source_location": "L25",
+      "_origin": "ast",
+      "id": "specs_010_consolidated_movie_listings_data_model_template_rendering_changes",
+      "community": 77,
+      "community_name": "Web View Contract",
+      "norm_label": "template rendering changes"
+    },
+    {
+      "label": "010-consolidated-movie-listings/plan.md",
+      "file_type": "document",
+      "source_file": "specs/010-consolidated-movie-listings/plan.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "specs_010_consolidated_movie_listings_plan",
+      "community": 45,
+      "community_name": "test_ingest.py",
+      "norm_label": "010-consolidated-movie-listings/plan.md"
+    },
+    {
+      "label": "Implementation Plan: Consolidated Movie Listings with Ticket and Letterboxd Links",
+      "file_type": "document",
+      "source_file": "specs/010-consolidated-movie-listings/plan.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "specs_010_consolidated_movie_listings_plan_implementation_plan_consolidated_movie_listings_with_ticket_and_letterboxd_links",
+      "community": 45,
+      "community_name": "test_ingest.py",
+      "norm_label": "implementation plan: consolidated movie listings with ticket and letterboxd links"
+    },
+    {
+      "label": "Summary",
+      "file_type": "document",
+      "source_file": "specs/010-consolidated-movie-listings/plan.md",
+      "source_location": "L9",
+      "_origin": "ast",
+      "id": "specs_010_consolidated_movie_listings_plan_summary",
+      "community": 45,
+      "community_name": "test_ingest.py",
+      "norm_label": "summary"
+    },
+    {
+      "label": "Technical Context",
+      "file_type": "document",
+      "source_file": "specs/010-consolidated-movie-listings/plan.md",
+      "source_location": "L28",
+      "_origin": "ast",
+      "id": "specs_010_consolidated_movie_listings_plan_technical_context",
+      "community": 45,
+      "community_name": "test_ingest.py",
+      "norm_label": "technical context"
+    },
+    {
+      "label": "Constitution Check",
+      "file_type": "document",
+      "source_file": "specs/010-consolidated-movie-listings/plan.md",
+      "source_location": "L48",
+      "_origin": "ast",
+      "id": "specs_010_consolidated_movie_listings_plan_constitution_check",
+      "community": 45,
+      "community_name": "test_ingest.py",
+      "norm_label": "constitution check"
+    },
+    {
+      "label": "Project Structure",
+      "file_type": "document",
+      "source_file": "specs/010-consolidated-movie-listings/plan.md",
+      "source_location": "L60",
+      "_origin": "ast",
+      "id": "specs_010_consolidated_movie_listings_plan_project_structure",
+      "community": 45,
+      "community_name": "test_ingest.py",
+      "norm_label": "project structure"
+    },
+    {
+      "label": "Documentation (this feature)",
+      "file_type": "document",
+      "source_file": "specs/010-consolidated-movie-listings/plan.md",
+      "source_location": "L62",
+      "_origin": "ast",
+      "id": "specs_010_consolidated_movie_listings_plan_documentation_this_feature",
+      "community": 45,
+      "community_name": "test_ingest.py",
+      "norm_label": "documentation (this feature)"
+    },
+    {
+      "label": "Source Code (repository root)",
+      "file_type": "document",
+      "source_file": "specs/010-consolidated-movie-listings/plan.md",
+      "source_location": "L75",
+      "_origin": "ast",
+      "id": "specs_010_consolidated_movie_listings_plan_source_code_repository_root",
+      "community": 45,
+      "community_name": "test_ingest.py",
+      "norm_label": "source code (repository root)"
+    },
+    {
+      "label": "Complexity Tracking",
+      "file_type": "document",
+      "source_file": "specs/010-consolidated-movie-listings/plan.md",
+      "source_location": "L99",
+      "_origin": "ast",
+      "id": "specs_010_consolidated_movie_listings_plan_complexity_tracking",
+      "community": 45,
+      "community_name": "test_ingest.py",
+      "norm_label": "complexity tracking"
+    },
+    {
+      "label": "010-consolidated-movie-listings/quickstart.md",
+      "file_type": "document",
+      "source_file": "specs/010-consolidated-movie-listings/quickstart.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "specs_010_consolidated_movie_listings_quickstart",
+      "community": 77,
+      "community_name": "Web View Contract",
+      "norm_label": "010-consolidated-movie-listings/quickstart.md"
+    },
+    {
+      "label": "Quickstart: Consolidated Movie Listings with Ticket and Letterboxd Links",
+      "file_type": "document",
+      "source_file": "specs/010-consolidated-movie-listings/quickstart.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "specs_010_consolidated_movie_listings_quickstart_quickstart_consolidated_movie_listings_with_ticket_and_letterboxd_links",
+      "community": 77,
+      "community_name": "Web View Contract",
+      "norm_label": "quickstart: consolidated movie listings with ticket and letterboxd links"
+    },
+    {
+      "label": "Prerequisites",
+      "file_type": "document",
+      "source_file": "specs/010-consolidated-movie-listings/quickstart.md",
+      "source_location": "L3",
+      "_origin": "ast",
+      "id": "specs_010_consolidated_movie_listings_quickstart_prerequisites",
+      "community": 77,
+      "community_name": "Web View Contract",
+      "norm_label": "prerequisites"
+    },
+    {
+      "label": "Build and run",
+      "file_type": "document",
+      "source_file": "specs/010-consolidated-movie-listings/quickstart.md",
+      "source_location": "L14",
+      "_origin": "ast",
+      "id": "specs_010_consolidated_movie_listings_quickstart_build_and_run",
+      "community": 77,
+      "community_name": "Web View Contract",
+      "norm_label": "build and run"
+    },
+    {
+      "label": "Validate it works",
+      "file_type": "document",
+      "source_file": "specs/010-consolidated-movie-listings/quickstart.md",
+      "source_location": "L35",
+      "_origin": "ast",
+      "id": "specs_010_consolidated_movie_listings_quickstart_validate_it_works",
+      "community": 77,
+      "community_name": "Web View Contract",
+      "norm_label": "validate it works"
+    },
+    {
+      "label": "010-consolidated-movie-listings/research.md",
+      "file_type": "document",
+      "source_file": "specs/010-consolidated-movie-listings/research.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "specs_010_consolidated_movie_listings_research",
+      "community": 94,
+      "community_name": "Research: Consolidated Movie Listings with Ticket and Letterboxd Links",
+      "norm_label": "010-consolidated-movie-listings/research.md"
+    },
+    {
+      "label": "Research: Consolidated Movie Listings with Ticket and Letterboxd Links",
+      "file_type": "document",
+      "source_file": "specs/010-consolidated-movie-listings/research.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "specs_010_consolidated_movie_listings_research_research_consolidated_movie_listings_with_ticket_and_letterboxd_links",
+      "community": 94,
+      "community_name": "Research: Consolidated Movie Listings with Ticket and Letterboxd Links",
+      "norm_label": "research: consolidated movie listings with ticket and letterboxd links"
+    },
+    {
+      "label": "1. How to pick \"the\" showtime a consolidated row represents",
+      "file_type": "document",
+      "source_file": "specs/010-consolidated-movie-listings/research.md",
+      "source_location": "L3",
+      "_origin": "ast",
+      "id": "specs_010_consolidated_movie_listings_research_1_how_to_pick_the_showtime_a_consolidated_row_represents",
+      "community": 94,
+      "community_name": "Research: Consolidated Movie Listings with Ticket and Letterboxd Links",
+      "norm_label": "1. how to pick \"the\" showtime a consolidated row represents"
+    },
+    {
+      "label": "2. Ticket link source",
+      "file_type": "document",
+      "source_file": "specs/010-consolidated-movie-listings/research.md",
+      "source_location": "L41",
+      "_origin": "ast",
+      "id": "specs_010_consolidated_movie_listings_research_2_ticket_link_source",
+      "community": 94,
+      "community_name": "Research: Consolidated Movie Listings with Ticket and Letterboxd Links",
+      "norm_label": "2. ticket link source"
+    },
+    {
+      "label": "3. Letterboxd rating + link source",
+      "file_type": "document",
+      "source_file": "specs/010-consolidated-movie-listings/research.md",
+      "source_location": "L60",
+      "_origin": "ast",
+      "id": "specs_010_consolidated_movie_listings_research_3_letterboxd_rating_link_source",
+      "community": 94,
+      "community_name": "Research: Consolidated Movie Listings with Ticket and Letterboxd Links",
+      "norm_label": "3. letterboxd rating + link source"
+    },
+    {
+      "label": "4. Grouping scope: per cinema section, not across cinemas",
+      "file_type": "document",
+      "source_file": "specs/010-consolidated-movie-listings/research.md",
+      "source_location": "L91",
+      "_origin": "ast",
+      "id": "specs_010_consolidated_movie_listings_research_4_grouping_scope_per_cinema_section_not_across_cinemas",
+      "community": 94,
+      "community_name": "Research: Consolidated Movie Listings with Ticket and Letterboxd Links",
+      "norm_label": "4. grouping scope: per cinema section, not across cinemas"
+    },
+    {
+      "label": "010-consolidated-movie-listings/spec.md",
+      "file_type": "document",
+      "source_file": "specs/010-consolidated-movie-listings/spec.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "specs_010_consolidated_movie_listings_spec",
+      "community": 45,
+      "community_name": "test_ingest.py",
+      "norm_label": "010-consolidated-movie-listings/spec.md"
+    },
+    {
+      "label": "Feature Specification: Consolidated Movie Listings with Ticket and Letterboxd Links",
+      "file_type": "document",
+      "source_file": "specs/010-consolidated-movie-listings/spec.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "specs_010_consolidated_movie_listings_spec_feature_specification_consolidated_movie_listings_with_ticket_and_letterboxd_links",
+      "community": 45,
+      "community_name": "test_ingest.py",
+      "norm_label": "feature specification: consolidated movie listings with ticket and letterboxd links"
+    },
+    {
+      "label": "User Scenarios & Testing *(mandatory)*",
+      "file_type": "document",
+      "source_file": "specs/010-consolidated-movie-listings/spec.md",
+      "source_location": "L11",
+      "_origin": "ast",
+      "id": "specs_010_consolidated_movie_listings_spec_user_scenarios_testing_mandatory",
+      "community": 45,
+      "community_name": "test_ingest.py",
+      "norm_label": "user scenarios & testing *(mandatory)*"
+    },
+    {
+      "label": "User Story 1 - See each movie once per venue instead of once per showing (Priority: P1)",
+      "file_type": "document",
+      "source_file": "specs/010-consolidated-movie-listings/spec.md",
+      "source_location": "L25",
+      "_origin": "ast",
+      "id": "specs_010_consolidated_movie_listings_spec_user_story_1_see_each_movie_once_per_venue_instead_of_once_per_showing_priority_p1",
+      "community": 45,
+      "community_name": "test_ingest.py",
+      "norm_label": "user story 1 - see each movie once per venue instead of once per showing (priority: p1)"
+    },
+    {
+      "label": "User Story 2 - Get to the ticket page directly from the listing (Priority: P2)",
+      "file_type": "document",
+      "source_file": "specs/010-consolidated-movie-listings/spec.md",
+      "source_location": "L59",
+      "_origin": "ast",
+      "id": "specs_010_consolidated_movie_listings_spec_user_story_2_get_to_the_ticket_page_directly_from_the_listing_priority_p2",
+      "community": 45,
+      "community_name": "test_ingest.py",
+      "norm_label": "user story 2 - get to the ticket page directly from the listing (priority: p2)"
+    },
+    {
+      "label": "User Story 3 - Jump straight to Letterboxd from the rating (Priority: P2)",
+      "file_type": "document",
+      "source_file": "specs/010-consolidated-movie-listings/spec.md",
+      "source_location": "L87",
+      "_origin": "ast",
+      "id": "specs_010_consolidated_movie_listings_spec_user_story_3_jump_straight_to_letterboxd_from_the_rating_priority_p2",
+      "community": 45,
+      "community_name": "test_ingest.py",
+      "norm_label": "user story 3 - jump straight to letterboxd from the rating (priority: p2)"
+    },
+    {
+      "label": "Edge Cases",
+      "file_type": "document",
+      "source_file": "specs/010-consolidated-movie-listings/spec.md",
+      "source_location": "L113",
+      "_origin": "ast",
+      "id": "specs_010_consolidated_movie_listings_spec_edge_cases",
+      "community": 45,
+      "community_name": "test_ingest.py",
+      "norm_label": "edge cases"
+    },
+    {
+      "label": "Requirements *(mandatory)*",
+      "file_type": "document",
+      "source_file": "specs/010-consolidated-movie-listings/spec.md",
+      "source_location": "L134",
+      "_origin": "ast",
+      "id": "specs_010_consolidated_movie_listings_spec_requirements_mandatory",
+      "community": 45,
+      "community_name": "test_ingest.py",
+      "norm_label": "requirements *(mandatory)*"
+    },
+    {
+      "label": "Functional Requirements",
+      "file_type": "document",
+      "source_file": "specs/010-consolidated-movie-listings/spec.md",
+      "source_location": "L136",
+      "_origin": "ast",
+      "id": "specs_010_consolidated_movie_listings_spec_functional_requirements",
+      "community": 45,
+      "community_name": "test_ingest.py",
+      "norm_label": "functional requirements"
+    },
+    {
+      "label": "Key Entities",
+      "file_type": "document",
+      "source_file": "specs/010-consolidated-movie-listings/spec.md",
+      "source_location": "L167",
+      "_origin": "ast",
+      "id": "specs_010_consolidated_movie_listings_spec_key_entities",
+      "community": 45,
+      "community_name": "test_ingest.py",
+      "norm_label": "key entities"
+    },
+    {
+      "label": "Success Criteria *(mandatory)*",
+      "file_type": "document",
+      "source_file": "specs/010-consolidated-movie-listings/spec.md",
+      "source_location": "L175",
+      "_origin": "ast",
+      "id": "specs_010_consolidated_movie_listings_spec_success_criteria_mandatory",
+      "community": 45,
+      "community_name": "test_ingest.py",
+      "norm_label": "success criteria *(mandatory)*"
+    },
+    {
+      "label": "Measurable Outcomes",
+      "file_type": "document",
+      "source_file": "specs/010-consolidated-movie-listings/spec.md",
+      "source_location": "L177",
+      "_origin": "ast",
+      "id": "specs_010_consolidated_movie_listings_spec_measurable_outcomes",
+      "community": 45,
+      "community_name": "test_ingest.py",
+      "norm_label": "measurable outcomes"
+    },
+    {
+      "label": "Assumptions",
+      "file_type": "document",
+      "source_file": "specs/010-consolidated-movie-listings/spec.md",
+      "source_location": "L192",
+      "_origin": "ast",
+      "id": "specs_010_consolidated_movie_listings_spec_assumptions",
+      "community": 45,
+      "community_name": "test_ingest.py",
+      "norm_label": "assumptions"
+    },
+    {
+      "label": "010-consolidated-movie-listings/tasks.md",
+      "file_type": "document",
+      "source_file": "specs/010-consolidated-movie-listings/tasks.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "specs_010_consolidated_movie_listings_tasks",
+      "community": 79,
+      "community_name": "Data Model: Movie Metadata Enrichment via TMDB",
+      "norm_label": "010-consolidated-movie-listings/tasks.md"
+    },
+    {
+      "label": "Tasks: Consolidated Movie Listings with Ticket and Letterboxd Links",
+      "file_type": "document",
+      "source_file": "specs/010-consolidated-movie-listings/tasks.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "specs_010_consolidated_movie_listings_tasks_tasks_consolidated_movie_listings_with_ticket_and_letterboxd_links",
+      "community": 79,
+      "community_name": "Data Model: Movie Metadata Enrichment via TMDB",
+      "norm_label": "tasks: consolidated movie listings with ticket and letterboxd links"
+    },
+    {
+      "label": "Format: `[ID] [P?] [Story] Description`",
+      "file_type": "document",
+      "source_file": "specs/010-consolidated-movie-listings/tasks.md",
+      "source_location": "L9",
+      "_origin": "ast",
+      "id": "specs_010_consolidated_movie_listings_tasks_format_id_p_story_description",
+      "community": 79,
+      "community_name": "Data Model: Movie Metadata Enrichment via TMDB",
+      "norm_label": "format: `[id] [p?] [story] description`"
+    },
+    {
+      "label": "Phase 1: User Story 1 - See each movie once per venue instead of once per showing (Priority: P1) \ud83c\udfaf MVP",
+      "file_type": "document",
+      "source_file": "specs/010-consolidated-movie-listings/tasks.md",
+      "source_location": "L15",
+      "_origin": "ast",
+      "id": "specs_010_consolidated_movie_listings_tasks_phase_1_user_story_1_see_each_movie_once_per_venue_instead_of_once_per_showing_priority_p1_mvp",
+      "community": 79,
+      "community_name": "Data Model: Movie Metadata Enrichment via TMDB",
+      "norm_label": "phase 1: user story 1 - see each movie once per venue instead of once per showing (priority: p1) \ud83c\udfaf mvp"
+    },
+    {
+      "label": "Tests for User Story 1",
+      "file_type": "document",
+      "source_file": "specs/010-consolidated-movie-listings/tasks.md",
+      "source_location": "L21",
+      "_origin": "ast",
+      "id": "specs_010_consolidated_movie_listings_tasks_tests_for_user_story_1",
+      "community": 79,
+      "community_name": "Data Model: Movie Metadata Enrichment via TMDB",
+      "norm_label": "tests for user story 1"
+    },
+    {
+      "label": "Implementation for User Story 1",
+      "file_type": "document",
+      "source_file": "specs/010-consolidated-movie-listings/tasks.md",
+      "source_location": "L26",
+      "_origin": "ast",
+      "id": "specs_010_consolidated_movie_listings_tasks_implementation_for_user_story_1",
+      "community": 79,
+      "community_name": "Data Model: Movie Metadata Enrichment via TMDB",
+      "norm_label": "implementation for user story 1"
+    },
+    {
+      "label": "Phase 2: User Story 2 - Get to the ticket page directly from the listing (Priority: P2)",
+      "file_type": "document",
+      "source_file": "specs/010-consolidated-movie-listings/tasks.md",
+      "source_location": "L35",
+      "_origin": "ast",
+      "id": "specs_010_consolidated_movie_listings_tasks_phase_2_user_story_2_get_to_the_ticket_page_directly_from_the_listing_priority_p2",
+      "community": 79,
+      "community_name": "Data Model: Movie Metadata Enrichment via TMDB",
+      "norm_label": "phase 2: user story 2 - get to the ticket page directly from the listing (priority: p2)"
+    },
+    {
+      "label": "Tests for User Story 2",
+      "file_type": "document",
+      "source_file": "specs/010-consolidated-movie-listings/tasks.md",
+      "source_location": "L41",
+      "_origin": "ast",
+      "id": "specs_010_consolidated_movie_listings_tasks_tests_for_user_story_2",
+      "community": 79,
+      "community_name": "Data Model: Movie Metadata Enrichment via TMDB",
+      "norm_label": "tests for user story 2"
+    },
+    {
+      "label": "Implementation for User Story 2",
+      "file_type": "document",
+      "source_file": "specs/010-consolidated-movie-listings/tasks.md",
+      "source_location": "L46",
+      "_origin": "ast",
+      "id": "specs_010_consolidated_movie_listings_tasks_implementation_for_user_story_2",
+      "community": 79,
+      "community_name": "Data Model: Movie Metadata Enrichment via TMDB",
+      "norm_label": "implementation for user story 2"
+    },
+    {
+      "label": "Phase 3: User Story 3 - Jump straight to Letterboxd from the rating (Priority: P2)",
+      "file_type": "document",
+      "source_file": "specs/010-consolidated-movie-listings/tasks.md",
+      "source_location": "L54",
+      "_origin": "ast",
+      "id": "specs_010_consolidated_movie_listings_tasks_phase_3_user_story_3_jump_straight_to_letterboxd_from_the_rating_priority_p2",
+      "community": 79,
+      "community_name": "Data Model: Movie Metadata Enrichment via TMDB",
+      "norm_label": "phase 3: user story 3 - jump straight to letterboxd from the rating (priority: p2)"
+    },
+    {
+      "label": "Tests for User Story 3",
+      "file_type": "document",
+      "source_file": "specs/010-consolidated-movie-listings/tasks.md",
+      "source_location": "L60",
+      "_origin": "ast",
+      "id": "specs_010_consolidated_movie_listings_tasks_tests_for_user_story_3",
+      "community": 79,
+      "community_name": "Data Model: Movie Metadata Enrichment via TMDB",
+      "norm_label": "tests for user story 3"
+    },
+    {
+      "label": "Implementation for User Story 3",
+      "file_type": "document",
+      "source_file": "specs/010-consolidated-movie-listings/tasks.md",
+      "source_location": "L67",
+      "_origin": "ast",
+      "id": "specs_010_consolidated_movie_listings_tasks_implementation_for_user_story_3",
+      "community": 79,
+      "community_name": "Data Model: Movie Metadata Enrichment via TMDB",
+      "norm_label": "implementation for user story 3"
+    },
+    {
+      "label": "Phase 4: Polish & Cross-Cutting Concerns",
+      "file_type": "document",
+      "source_file": "specs/010-consolidated-movie-listings/tasks.md",
+      "source_location": "L77",
+      "_origin": "ast",
+      "id": "specs_010_consolidated_movie_listings_tasks_phase_4_polish_cross_cutting_concerns",
+      "community": 79,
+      "community_name": "Data Model: Movie Metadata Enrichment via TMDB",
+      "norm_label": "phase 4: polish & cross-cutting concerns"
+    },
+    {
+      "label": "Dependencies & Execution Order",
+      "file_type": "document",
+      "source_file": "specs/010-consolidated-movie-listings/tasks.md",
+      "source_location": "L86",
+      "_origin": "ast",
+      "id": "specs_010_consolidated_movie_listings_tasks_dependencies_execution_order",
+      "community": 79,
+      "community_name": "Data Model: Movie Metadata Enrichment via TMDB",
+      "norm_label": "dependencies & execution order"
+    },
+    {
+      "label": "Phase Dependencies",
+      "file_type": "document",
+      "source_file": "specs/010-consolidated-movie-listings/tasks.md",
+      "source_location": "L88",
+      "_origin": "ast",
+      "id": "specs_010_consolidated_movie_listings_tasks_phase_dependencies",
+      "community": 79,
+      "community_name": "Data Model: Movie Metadata Enrichment via TMDB",
+      "norm_label": "phase dependencies"
+    },
+    {
+      "label": "Within Each User Story",
+      "file_type": "document",
+      "source_file": "specs/010-consolidated-movie-listings/tasks.md",
+      "source_location": "L95",
+      "_origin": "ast",
+      "id": "specs_010_consolidated_movie_listings_tasks_within_each_user_story",
+      "community": 79,
+      "community_name": "Data Model: Movie Metadata Enrichment via TMDB",
+      "norm_label": "within each user story"
+    },
+    {
+      "label": "Parallel Opportunities",
+      "file_type": "document",
+      "source_file": "specs/010-consolidated-movie-listings/tasks.md",
+      "source_location": "L100",
+      "_origin": "ast",
+      "id": "specs_010_consolidated_movie_listings_tasks_parallel_opportunities",
+      "community": 79,
+      "community_name": "Data Model: Movie Metadata Enrichment via TMDB",
+      "norm_label": "parallel opportunities"
+    },
+    {
+      "label": "Parallel Example: User Story 1",
+      "file_type": "document",
+      "source_file": "specs/010-consolidated-movie-listings/tasks.md",
+      "source_location": "L109",
+      "_origin": "ast",
+      "id": "specs_010_consolidated_movie_listings_tasks_parallel_example_user_story_1",
+      "community": 79,
+      "community_name": "Data Model: Movie Metadata Enrichment via TMDB",
+      "norm_label": "parallel example: user story 1"
+    },
+    {
+      "label": "Implementation Strategy",
+      "file_type": "document",
+      "source_file": "specs/010-consolidated-movie-listings/tasks.md",
+      "source_location": "L119",
+      "_origin": "ast",
+      "id": "specs_010_consolidated_movie_listings_tasks_implementation_strategy",
+      "community": 79,
+      "community_name": "Data Model: Movie Metadata Enrichment via TMDB",
+      "norm_label": "implementation strategy"
+    },
+    {
+      "label": "MVP First (User Story 1 Only)",
+      "file_type": "document",
+      "source_file": "specs/010-consolidated-movie-listings/tasks.md",
+      "source_location": "L121",
+      "_origin": "ast",
+      "id": "specs_010_consolidated_movie_listings_tasks_mvp_first_user_story_1_only",
+      "community": 79,
+      "community_name": "Data Model: Movie Metadata Enrichment via TMDB",
+      "norm_label": "mvp first (user story 1 only)"
+    },
+    {
+      "label": "Incremental Delivery",
+      "file_type": "document",
+      "source_file": "specs/010-consolidated-movie-listings/tasks.md",
+      "source_location": "L127",
+      "_origin": "ast",
+      "id": "specs_010_consolidated_movie_listings_tasks_incremental_delivery",
+      "community": 79,
+      "community_name": "Data Model: Movie Metadata Enrichment via TMDB",
+      "norm_label": "incremental delivery"
+    },
+    {
+      "label": "Notes",
+      "file_type": "document",
+      "source_file": "specs/010-consolidated-movie-listings/tasks.md",
+      "source_location": "L136",
+      "_origin": "ast",
+      "id": "specs_010_consolidated_movie_listings_tasks_notes",
+      "community": 79,
+      "community_name": "Data Model: Movie Metadata Enrichment via TMDB",
+      "norm_label": "notes"
     }
   ],
   "links": [
@@ -16210,7 +17079,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "src/cinema_recs/web.py",
-      "source_location": "L87",
+      "source_location": "L121",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_cinema_recs_web_create_app",
@@ -18242,7 +19111,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "src/cinema_recs/web.py",
-      "source_location": "L87",
+      "source_location": "L121",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_cinema_recs_web_create_app",
@@ -18306,6 +19175,30 @@
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_cinema_recs_storage_row_to_showtime",
+      "target": "src_cinema_recs_models_showtime",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/cinema_recs/web.py",
+      "source_location": "L6",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_cinema_recs_web",
+      "target": "src_cinema_recs_models_showtime",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "src/cinema_recs/web.py",
+      "source_location": "L107",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_cinema_recs_web_group_by_earliest_showtime_per_movie",
       "target": "src_cinema_recs_models_showtime",
       "confidence_score": 1.0
     },
@@ -22689,7 +23582,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/cinema_recs/web.py",
-      "source_location": "L94",
+      "source_location": "L129",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_cinema_recs_web_create_app",
@@ -22761,7 +23654,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/cinema_recs/web.py",
-      "source_location": "L119",
+      "source_location": "L160",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_cinema_recs_web_create_app",
@@ -22808,7 +23701,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/cinema_recs/web.py",
-      "source_location": "L101",
+      "source_location": "L137",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_cinema_recs_web_create_app",
@@ -22849,6 +23742,30 @@
       "confidence_score": 1.0
     },
     {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/cinema_recs/web.py",
+      "source_location": "L7",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_cinema_recs_web",
+      "target": "src_cinema_recs_storage_get_letterboxd_movie_data",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/cinema_recs/web.py",
+      "source_location": "L145",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_cinema_recs_web_create_app",
+      "target": "src_cinema_recs_storage_get_letterboxd_movie_data",
+      "confidence_score": 1.0
+    },
+    {
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "src/cinema_recs/storage.py",
@@ -22876,7 +23793,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/cinema_recs/web.py",
-      "source_location": "L105",
+      "source_location": "L141",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_cinema_recs_web_create_app",
@@ -23508,11 +24425,22 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/cinema_recs/web.py",
-      "source_location": "L87",
+      "source_location": "L121",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_cinema_recs_web",
       "target": "src_cinema_recs_web_create_app",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/cinema_recs/web.py",
+      "source_location": "L107",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_cinema_recs_web",
+      "target": "src_cinema_recs_web_group_by_earliest_showtime_per_movie",
       "confidence_score": 1.0
     },
     {
@@ -23528,11 +24456,22 @@
       "confidence_score": 1.0
     },
     {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "src/cinema_recs/web.py",
+      "source_location": "L108",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_cinema_recs_web_rationale_108",
+      "target": "src_cinema_recs_web_group_by_earliest_showtime_per_movie",
+      "confidence_score": 1.0
+    },
+    {
       "relation": "references",
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "src/cinema_recs/web.py",
-      "source_location": "L87",
+      "source_location": "L121",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_cinema_recs_web_create_app",
@@ -23549,6 +24488,18 @@
       "weight": 1.0,
       "_origin": "ast",
       "source": "tests_integration_test_web_view_client",
+      "target": "src_cinema_recs_web_create_app"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests/integration/test_web_view.py",
+      "source_location": "L101",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "tests_integration_test_web_view_test_listing_shows_one_row_per_venue_for_movie_playing_at_multiple_venues",
       "target": "src_cinema_recs_web_create_app"
     },
     {
@@ -23867,7 +24818,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/integration/test_web_view.py",
-      "source_location": "L65",
+      "source_location": "L142",
       "weight": 1.0,
       "_origin": "ast",
       "source": "tests_integration_test_web_view",
@@ -23878,7 +24829,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/integration/test_web_view.py",
-      "source_location": "L74",
+      "source_location": "L151",
       "weight": 1.0,
       "_origin": "ast",
       "source": "tests_integration_test_web_view",
@@ -23889,7 +24840,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/integration/test_web_view.py",
-      "source_location": "L171",
+      "source_location": "L309",
       "weight": 1.0,
       "_origin": "ast",
       "source": "tests_integration_test_web_view",
@@ -23900,7 +24851,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/integration/test_web_view.py",
-      "source_location": "L59",
+      "source_location": "L136",
       "weight": 1.0,
       "_origin": "ast",
       "source": "tests_integration_test_web_view",
@@ -23911,7 +24862,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/integration/test_web_view.py",
-      "source_location": "L184",
+      "source_location": "L322",
       "weight": 1.0,
       "_origin": "ast",
       "source": "tests_integration_test_web_view",
@@ -23922,7 +24873,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/integration/test_web_view.py",
-      "source_location": "L83",
+      "source_location": "L160",
       "weight": 1.0,
       "_origin": "ast",
       "source": "tests_integration_test_web_view",
@@ -23933,7 +24884,18 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/integration/test_web_view.py",
-      "source_location": "L143",
+      "source_location": "L59",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "tests_integration_test_web_view",
+      "target": "tests_integration_test_web_view_test_listing_consolidates_multiple_showtimes_for_same_movie_at_same_venue",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/integration/test_web_view.py",
+      "source_location": "L281",
       "weight": 1.0,
       "_origin": "ast",
       "source": "tests_integration_test_web_view",
@@ -23944,7 +24906,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/integration/test_web_view.py",
-      "source_location": "L158",
+      "source_location": "L296",
       "weight": 1.0,
       "_origin": "ast",
       "source": "tests_integration_test_web_view",
@@ -23955,11 +24917,44 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/integration/test_web_view.py",
-      "source_location": "L115",
+      "source_location": "L253",
       "weight": 1.0,
       "_origin": "ast",
       "source": "tests_integration_test_web_view",
       "target": "tests_integration_test_web_view_test_listing_renders_normally_for_unmatched_movie",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/integration/test_web_view.py",
+      "source_location": "L233",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "tests_integration_test_web_view",
+      "target": "tests_integration_test_web_view_test_listing_shows_dash_when_letterboxd_slug_resolved_but_rating_missing",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/integration/test_web_view.py",
+      "source_location": "L218",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "tests_integration_test_web_view",
+      "target": "tests_integration_test_web_view_test_listing_shows_dash_when_no_letterboxd_match",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/integration/test_web_view.py",
+      "source_location": "L123",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "tests_integration_test_web_view",
+      "target": "tests_integration_test_web_view_test_listing_shows_dash_when_ticket_link_absent",
       "confidence_score": 1.0
     },
     {
@@ -23977,7 +24972,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/integration/test_web_view.py",
-      "source_location": "L96",
+      "source_location": "L173",
       "weight": 1.0,
       "_origin": "ast",
       "source": "tests_integration_test_web_view",
@@ -23999,11 +24994,44 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/integration/test_web_view.py",
-      "source_location": "L128",
+      "source_location": "L201",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "tests_integration_test_web_view",
+      "target": "tests_integration_test_web_view_test_listing_shows_letterboxd_rating_link_when_available",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/integration/test_web_view.py",
+      "source_location": "L84",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "tests_integration_test_web_view",
+      "target": "tests_integration_test_web_view_test_listing_shows_one_row_per_venue_for_movie_playing_at_multiple_venues",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/integration/test_web_view.py",
+      "source_location": "L266",
       "weight": 1.0,
       "_origin": "ast",
       "source": "tests_integration_test_web_view",
       "target": "tests_integration_test_web_view_test_listing_shows_recommended_badge_and_reasons",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/integration/test_web_view.py",
+      "source_location": "L110",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "tests_integration_test_web_view",
+      "target": "tests_integration_test_web_view_test_listing_shows_ticket_link_when_present",
       "confidence_score": 1.0
     },
     {
@@ -28795,6 +29823,17 @@
       "weight": 1.0,
       "_origin": "ast",
       "source": "specs_001_cinepolis_showtime_ingestion_quickstart",
+      "target": "specs_001_cinepolis_showtime_ingestion_contracts_web_view",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/010-consolidated-movie-listings/contracts/web-view.md",
+      "source_location": "L4",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "specs_010_consolidated_movie_listings_contracts_web_view",
       "target": "specs_001_cinepolis_showtime_ingestion_contracts_web_view",
       "confidence_score": 1.0
     },
@@ -36519,8 +37558,734 @@
       "source": "specs_009_full_showtime_window_tasks_implementation_strategy",
       "target": "specs_009_full_showtime_window_tasks_mvp_first_user_story_1_only",
       "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/010-consolidated-movie-listings/checklists/requirements.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "specs_010_consolidated_movie_listings_checklists_requirements",
+      "target": "specs_010_consolidated_movie_listings_checklists_requirements_specification_quality_checklist_consolidated_movie_listings_with_ticket_and_letterboxd_links",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/010-consolidated-movie-listings/checklists/requirements.md",
+      "source_location": "L5",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "specs_010_consolidated_movie_listings_checklists_requirements",
+      "target": "specs_010_consolidated_movie_listings_spec",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/010-consolidated-movie-listings/checklists/requirements.md",
+      "source_location": "L7",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "specs_010_consolidated_movie_listings_checklists_requirements_specification_quality_checklist_consolidated_movie_listings_with_ticket_and_letterboxd_links",
+      "target": "specs_010_consolidated_movie_listings_checklists_requirements_content_quality",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/010-consolidated-movie-listings/checklists/requirements.md",
+      "source_location": "L25",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "specs_010_consolidated_movie_listings_checklists_requirements_specification_quality_checklist_consolidated_movie_listings_with_ticket_and_letterboxd_links",
+      "target": "specs_010_consolidated_movie_listings_checklists_requirements_feature_readiness",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/010-consolidated-movie-listings/checklists/requirements.md",
+      "source_location": "L32",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "specs_010_consolidated_movie_listings_checklists_requirements_specification_quality_checklist_consolidated_movie_listings_with_ticket_and_letterboxd_links",
+      "target": "specs_010_consolidated_movie_listings_checklists_requirements_notes",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/010-consolidated-movie-listings/checklists/requirements.md",
+      "source_location": "L14",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "specs_010_consolidated_movie_listings_checklists_requirements_specification_quality_checklist_consolidated_movie_listings_with_ticket_and_letterboxd_links",
+      "target": "specs_010_consolidated_movie_listings_checklists_requirements_requirement_completeness",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/010-consolidated-movie-listings/contracts/web-view.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "specs_010_consolidated_movie_listings_contracts_web_view",
+      "target": "specs_010_consolidated_movie_listings_contracts_web_view_web_view_contract_updated_by_feature_010",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/010-consolidated-movie-listings/quickstart.md",
+      "source_location": "L68",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "specs_010_consolidated_movie_listings_quickstart",
+      "target": "specs_010_consolidated_movie_listings_contracts_web_view",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/010-consolidated-movie-listings/contracts/web-view.md",
+      "source_location": "L8",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "specs_010_consolidated_movie_listings_contracts_web_view_web_view_contract_updated_by_feature_010",
+      "target": "specs_010_consolidated_movie_listings_contracts_web_view_get",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/010-consolidated-movie-listings/contracts/web-view.md",
+      "source_location": "L35",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "specs_010_consolidated_movie_listings_contracts_web_view_web_view_contract_updated_by_feature_010",
+      "target": "specs_010_consolidated_movie_listings_contracts_web_view_out_of_scope_for_this_contract",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/010-consolidated-movie-listings/data-model.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "specs_010_consolidated_movie_listings_data_model",
+      "target": "specs_010_consolidated_movie_listings_data_model_data_model_consolidated_movie_listings_with_ticket_and_letterboxd_links",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/010-consolidated-movie-listings/quickstart.md",
+      "source_location": "L69",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "specs_010_consolidated_movie_listings_quickstart",
+      "target": "specs_010_consolidated_movie_listings_data_model",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/010-consolidated-movie-listings/data-model.md",
+      "source_location": "L7",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "specs_010_consolidated_movie_listings_data_model_data_model_consolidated_movie_listings_with_ticket_and_letterboxd_links",
+      "target": "specs_010_consolidated_movie_listings_data_model_existing_entities_used_unchanged",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/010-consolidated-movie-listings/data-model.md",
+      "source_location": "L16",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "specs_010_consolidated_movie_listings_data_model_data_model_consolidated_movie_listings_with_ticket_and_letterboxd_links",
+      "target": "specs_010_consolidated_movie_listings_data_model_new_internal_non_persisted_concept_consolidated_listing_row",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/010-consolidated-movie-listings/data-model.md",
+      "source_location": "L25",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "specs_010_consolidated_movie_listings_data_model_data_model_consolidated_movie_listings_with_ticket_and_letterboxd_links",
+      "target": "specs_010_consolidated_movie_listings_data_model_template_rendering_changes",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/010-consolidated-movie-listings/plan.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "specs_010_consolidated_movie_listings_plan",
+      "target": "specs_010_consolidated_movie_listings_plan_implementation_plan_consolidated_movie_listings_with_ticket_and_letterboxd_links",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/010-consolidated-movie-listings/plan.md",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "specs_010_consolidated_movie_listings_plan",
+      "target": "specs_010_consolidated_movie_listings_spec",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/010-consolidated-movie-listings/plan.md",
+      "source_location": "L99",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "specs_010_consolidated_movie_listings_plan_implementation_plan_consolidated_movie_listings_with_ticket_and_letterboxd_links",
+      "target": "specs_010_consolidated_movie_listings_plan_complexity_tracking",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/010-consolidated-movie-listings/plan.md",
+      "source_location": "L48",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "specs_010_consolidated_movie_listings_plan_implementation_plan_consolidated_movie_listings_with_ticket_and_letterboxd_links",
+      "target": "specs_010_consolidated_movie_listings_plan_constitution_check",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/010-consolidated-movie-listings/plan.md",
+      "source_location": "L60",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "specs_010_consolidated_movie_listings_plan_implementation_plan_consolidated_movie_listings_with_ticket_and_letterboxd_links",
+      "target": "specs_010_consolidated_movie_listings_plan_project_structure",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/010-consolidated-movie-listings/plan.md",
+      "source_location": "L9",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "specs_010_consolidated_movie_listings_plan_implementation_plan_consolidated_movie_listings_with_ticket_and_letterboxd_links",
+      "target": "specs_010_consolidated_movie_listings_plan_summary",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/010-consolidated-movie-listings/plan.md",
+      "source_location": "L28",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "specs_010_consolidated_movie_listings_plan_implementation_plan_consolidated_movie_listings_with_ticket_and_letterboxd_links",
+      "target": "specs_010_consolidated_movie_listings_plan_technical_context",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/010-consolidated-movie-listings/plan.md",
+      "source_location": "L62",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "specs_010_consolidated_movie_listings_plan_project_structure",
+      "target": "specs_010_consolidated_movie_listings_plan_documentation_this_feature",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/010-consolidated-movie-listings/plan.md",
+      "source_location": "L75",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "specs_010_consolidated_movie_listings_plan_project_structure",
+      "target": "specs_010_consolidated_movie_listings_plan_source_code_repository_root",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/010-consolidated-movie-listings/quickstart.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "specs_010_consolidated_movie_listings_quickstart",
+      "target": "specs_010_consolidated_movie_listings_quickstart_quickstart_consolidated_movie_listings_with_ticket_and_letterboxd_links",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/010-consolidated-movie-listings/quickstart.md",
+      "source_location": "L14",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "specs_010_consolidated_movie_listings_quickstart_quickstart_consolidated_movie_listings_with_ticket_and_letterboxd_links",
+      "target": "specs_010_consolidated_movie_listings_quickstart_build_and_run",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/010-consolidated-movie-listings/quickstart.md",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "specs_010_consolidated_movie_listings_quickstart_quickstart_consolidated_movie_listings_with_ticket_and_letterboxd_links",
+      "target": "specs_010_consolidated_movie_listings_quickstart_prerequisites",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/010-consolidated-movie-listings/quickstart.md",
+      "source_location": "L35",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "specs_010_consolidated_movie_listings_quickstart_quickstart_consolidated_movie_listings_with_ticket_and_letterboxd_links",
+      "target": "specs_010_consolidated_movie_listings_quickstart_validate_it_works",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/010-consolidated-movie-listings/research.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "specs_010_consolidated_movie_listings_research",
+      "target": "specs_010_consolidated_movie_listings_research_research_consolidated_movie_listings_with_ticket_and_letterboxd_links",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/010-consolidated-movie-listings/research.md",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "specs_010_consolidated_movie_listings_research_research_consolidated_movie_listings_with_ticket_and_letterboxd_links",
+      "target": "specs_010_consolidated_movie_listings_research_1_how_to_pick_the_showtime_a_consolidated_row_represents",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/010-consolidated-movie-listings/research.md",
+      "source_location": "L41",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "specs_010_consolidated_movie_listings_research_research_consolidated_movie_listings_with_ticket_and_letterboxd_links",
+      "target": "specs_010_consolidated_movie_listings_research_2_ticket_link_source",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/010-consolidated-movie-listings/research.md",
+      "source_location": "L60",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "specs_010_consolidated_movie_listings_research_research_consolidated_movie_listings_with_ticket_and_letterboxd_links",
+      "target": "specs_010_consolidated_movie_listings_research_3_letterboxd_rating_link_source",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/010-consolidated-movie-listings/research.md",
+      "source_location": "L91",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "specs_010_consolidated_movie_listings_research_research_consolidated_movie_listings_with_ticket_and_letterboxd_links",
+      "target": "specs_010_consolidated_movie_listings_research_4_grouping_scope_per_cinema_section_not_across_cinemas",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/010-consolidated-movie-listings/spec.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "specs_010_consolidated_movie_listings_spec",
+      "target": "specs_010_consolidated_movie_listings_spec_feature_specification_consolidated_movie_listings_with_ticket_and_letterboxd_links",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/010-consolidated-movie-listings/spec.md",
+      "source_location": "L192",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "specs_010_consolidated_movie_listings_spec_feature_specification_consolidated_movie_listings_with_ticket_and_letterboxd_links",
+      "target": "specs_010_consolidated_movie_listings_spec_assumptions",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/010-consolidated-movie-listings/spec.md",
+      "source_location": "L134",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "specs_010_consolidated_movie_listings_spec_feature_specification_consolidated_movie_listings_with_ticket_and_letterboxd_links",
+      "target": "specs_010_consolidated_movie_listings_spec_requirements_mandatory",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/010-consolidated-movie-listings/spec.md",
+      "source_location": "L175",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "specs_010_consolidated_movie_listings_spec_feature_specification_consolidated_movie_listings_with_ticket_and_letterboxd_links",
+      "target": "specs_010_consolidated_movie_listings_spec_success_criteria_mandatory",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/010-consolidated-movie-listings/spec.md",
+      "source_location": "L11",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "specs_010_consolidated_movie_listings_spec_feature_specification_consolidated_movie_listings_with_ticket_and_letterboxd_links",
+      "target": "specs_010_consolidated_movie_listings_spec_user_scenarios_testing_mandatory",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/010-consolidated-movie-listings/spec.md",
+      "source_location": "L113",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "specs_010_consolidated_movie_listings_spec_user_scenarios_testing_mandatory",
+      "target": "specs_010_consolidated_movie_listings_spec_edge_cases",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/010-consolidated-movie-listings/spec.md",
+      "source_location": "L25",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "specs_010_consolidated_movie_listings_spec_user_scenarios_testing_mandatory",
+      "target": "specs_010_consolidated_movie_listings_spec_user_story_1_see_each_movie_once_per_venue_instead_of_once_per_showing_priority_p1",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/010-consolidated-movie-listings/spec.md",
+      "source_location": "L59",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "specs_010_consolidated_movie_listings_spec_user_scenarios_testing_mandatory",
+      "target": "specs_010_consolidated_movie_listings_spec_user_story_2_get_to_the_ticket_page_directly_from_the_listing_priority_p2",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/010-consolidated-movie-listings/spec.md",
+      "source_location": "L87",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "specs_010_consolidated_movie_listings_spec_user_scenarios_testing_mandatory",
+      "target": "specs_010_consolidated_movie_listings_spec_user_story_3_jump_straight_to_letterboxd_from_the_rating_priority_p2",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/010-consolidated-movie-listings/spec.md",
+      "source_location": "L136",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "specs_010_consolidated_movie_listings_spec_requirements_mandatory",
+      "target": "specs_010_consolidated_movie_listings_spec_functional_requirements",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/010-consolidated-movie-listings/spec.md",
+      "source_location": "L167",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "specs_010_consolidated_movie_listings_spec_requirements_mandatory",
+      "target": "specs_010_consolidated_movie_listings_spec_key_entities",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/010-consolidated-movie-listings/spec.md",
+      "source_location": "L177",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "specs_010_consolidated_movie_listings_spec_success_criteria_mandatory",
+      "target": "specs_010_consolidated_movie_listings_spec_measurable_outcomes",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/010-consolidated-movie-listings/tasks.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "specs_010_consolidated_movie_listings_tasks",
+      "target": "specs_010_consolidated_movie_listings_tasks_tasks_consolidated_movie_listings_with_ticket_and_letterboxd_links",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/010-consolidated-movie-listings/tasks.md",
+      "source_location": "L86",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "specs_010_consolidated_movie_listings_tasks_tasks_consolidated_movie_listings_with_ticket_and_letterboxd_links",
+      "target": "specs_010_consolidated_movie_listings_tasks_dependencies_execution_order",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/010-consolidated-movie-listings/tasks.md",
+      "source_location": "L9",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "specs_010_consolidated_movie_listings_tasks_tasks_consolidated_movie_listings_with_ticket_and_letterboxd_links",
+      "target": "specs_010_consolidated_movie_listings_tasks_format_id_p_story_description",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/010-consolidated-movie-listings/tasks.md",
+      "source_location": "L119",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "specs_010_consolidated_movie_listings_tasks_tasks_consolidated_movie_listings_with_ticket_and_letterboxd_links",
+      "target": "specs_010_consolidated_movie_listings_tasks_implementation_strategy",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/010-consolidated-movie-listings/tasks.md",
+      "source_location": "L136",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "specs_010_consolidated_movie_listings_tasks_tasks_consolidated_movie_listings_with_ticket_and_letterboxd_links",
+      "target": "specs_010_consolidated_movie_listings_tasks_notes",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/010-consolidated-movie-listings/tasks.md",
+      "source_location": "L109",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "specs_010_consolidated_movie_listings_tasks_tasks_consolidated_movie_listings_with_ticket_and_letterboxd_links",
+      "target": "specs_010_consolidated_movie_listings_tasks_parallel_example_user_story_1",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/010-consolidated-movie-listings/tasks.md",
+      "source_location": "L15",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "specs_010_consolidated_movie_listings_tasks_tasks_consolidated_movie_listings_with_ticket_and_letterboxd_links",
+      "target": "specs_010_consolidated_movie_listings_tasks_phase_1_user_story_1_see_each_movie_once_per_venue_instead_of_once_per_showing_priority_p1_mvp",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/010-consolidated-movie-listings/tasks.md",
+      "source_location": "L35",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "specs_010_consolidated_movie_listings_tasks_tasks_consolidated_movie_listings_with_ticket_and_letterboxd_links",
+      "target": "specs_010_consolidated_movie_listings_tasks_phase_2_user_story_2_get_to_the_ticket_page_directly_from_the_listing_priority_p2",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/010-consolidated-movie-listings/tasks.md",
+      "source_location": "L54",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "specs_010_consolidated_movie_listings_tasks_tasks_consolidated_movie_listings_with_ticket_and_letterboxd_links",
+      "target": "specs_010_consolidated_movie_listings_tasks_phase_3_user_story_3_jump_straight_to_letterboxd_from_the_rating_priority_p2",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/010-consolidated-movie-listings/tasks.md",
+      "source_location": "L77",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "specs_010_consolidated_movie_listings_tasks_tasks_consolidated_movie_listings_with_ticket_and_letterboxd_links",
+      "target": "specs_010_consolidated_movie_listings_tasks_phase_4_polish_cross_cutting_concerns",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/010-consolidated-movie-listings/tasks.md",
+      "source_location": "L26",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "specs_010_consolidated_movie_listings_tasks_phase_1_user_story_1_see_each_movie_once_per_venue_instead_of_once_per_showing_priority_p1_mvp",
+      "target": "specs_010_consolidated_movie_listings_tasks_implementation_for_user_story_1",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/010-consolidated-movie-listings/tasks.md",
+      "source_location": "L21",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "specs_010_consolidated_movie_listings_tasks_phase_1_user_story_1_see_each_movie_once_per_venue_instead_of_once_per_showing_priority_p1_mvp",
+      "target": "specs_010_consolidated_movie_listings_tasks_tests_for_user_story_1",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/010-consolidated-movie-listings/tasks.md",
+      "source_location": "L46",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "specs_010_consolidated_movie_listings_tasks_phase_2_user_story_2_get_to_the_ticket_page_directly_from_the_listing_priority_p2",
+      "target": "specs_010_consolidated_movie_listings_tasks_implementation_for_user_story_2",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/010-consolidated-movie-listings/tasks.md",
+      "source_location": "L41",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "specs_010_consolidated_movie_listings_tasks_phase_2_user_story_2_get_to_the_ticket_page_directly_from_the_listing_priority_p2",
+      "target": "specs_010_consolidated_movie_listings_tasks_tests_for_user_story_2",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/010-consolidated-movie-listings/tasks.md",
+      "source_location": "L67",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "specs_010_consolidated_movie_listings_tasks_phase_3_user_story_3_jump_straight_to_letterboxd_from_the_rating_priority_p2",
+      "target": "specs_010_consolidated_movie_listings_tasks_implementation_for_user_story_3",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/010-consolidated-movie-listings/tasks.md",
+      "source_location": "L60",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "specs_010_consolidated_movie_listings_tasks_phase_3_user_story_3_jump_straight_to_letterboxd_from_the_rating_priority_p2",
+      "target": "specs_010_consolidated_movie_listings_tasks_tests_for_user_story_3",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/010-consolidated-movie-listings/tasks.md",
+      "source_location": "L100",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "specs_010_consolidated_movie_listings_tasks_dependencies_execution_order",
+      "target": "specs_010_consolidated_movie_listings_tasks_parallel_opportunities",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/010-consolidated-movie-listings/tasks.md",
+      "source_location": "L88",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "specs_010_consolidated_movie_listings_tasks_dependencies_execution_order",
+      "target": "specs_010_consolidated_movie_listings_tasks_phase_dependencies",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/010-consolidated-movie-listings/tasks.md",
+      "source_location": "L95",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "specs_010_consolidated_movie_listings_tasks_dependencies_execution_order",
+      "target": "specs_010_consolidated_movie_listings_tasks_within_each_user_story",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/010-consolidated-movie-listings/tasks.md",
+      "source_location": "L127",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "specs_010_consolidated_movie_listings_tasks_implementation_strategy",
+      "target": "specs_010_consolidated_movie_listings_tasks_incremental_delivery",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "specs/010-consolidated-movie-listings/tasks.md",
+      "source_location": "L121",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "specs_010_consolidated_movie_listings_tasks_implementation_strategy",
+      "target": "specs_010_consolidated_movie_listings_tasks_mvp_first_user_story_1_only",
+      "confidence_score": 1.0
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "4d2cb01c3b5fe31c448cb90ba2c8d6c562c3ad55"
+  "built_at_commit": "d5da65a0819d3b8475325d95e1a6833e12753f5a"
 }
