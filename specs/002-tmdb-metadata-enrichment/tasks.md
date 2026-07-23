@@ -183,3 +183,7 @@ Task: "Unit test for enrichment orchestration caching behavior in tests/unit/tes
 - Stop at any checkpoint to validate story independently
 - Feature 003 depends on this feature's `tmdb_id` (via `get_movie_metadata`, per contracts/movie-metadata-interface.md) — avoid changing that function's contract without checking feature 003's plan/tasks once they exist
 - Avoid: vague tasks, same-file conflicts, cross-story dependencies that break independence
+
+## Phase 7: Convergence
+
+- [X] T021 Restore FR-007 compliance in `src/cinema_recs/web.py`'s `LISTING_TEMPLATE`: when a matched movie has no Letterboxd rating/link available (`section.letterboxd.get(s.movie_title)` is `None`, has no `letterboxd_slug`, or has `average_rating is none`), render the movie's stored `metadata.average_rating` (TMDB, plain text, unlinked) instead of "—", so the Rating column still displays a rating for every movie with stored TMDB metadata as FR-007 requires — while continuing to prefer the Letterboxd-linked rating when available per feature 010 FR-005 (contradicts FR-007)

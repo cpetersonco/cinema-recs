@@ -49,6 +49,8 @@ LISTING_TEMPLATE = """
     <td>
       {% if lb and lb.letterboxd_slug and lb.average_rating is not none %}
       <a href="{{ letterboxd_base_url }}/{{ lb.letterboxd_slug }}/">{{ lb.average_rating }}</a>
+      {% elif metadata and metadata.average_rating is not none %}
+      {{ metadata.average_rating }}
       {% else %}
       —
       {% endif %}

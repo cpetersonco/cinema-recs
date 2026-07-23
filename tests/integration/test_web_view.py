@@ -215,18 +215,43 @@ def test_listing_shows_letterboxd_rating_link_when_available(client, config, cin
     assert b'<a href="https://letterboxd.com/film/rated-movie/">3.8</a>' in response.data
 
 
-def test_listing_shows_dash_when_no_letterboxd_match(client, config, cinema):
+def test_listing_shows_dash_when_no_letterboxd_match_and_no_tmdb_rating(client, config, cinema):
     storage.upsert_showtime(
         config.db_path, cinema.id, "Unrated Movie", date(2026, 8, 1), time(18, 30),
         "Standard", datetime(2026, 8, 1, 10, 0, 0),
     )
     storage.upsert_movie_metadata(config.db_path, "Unrated Movie", match_status="matched", tmdb_id=8)
-    # No upsert_letterboxd_movie_data call at all - not yet enriched.
+    # No upsert_letterboxd_movie_data call at all - not yet enriched - and
+    # no TMDB average_rating stored either, so there is truly no rating to
+    # fall back to.
 
     response = client.get("/")
 
     assert response.status_code == 200
     assert b"Unrated Movie" in response.data
+    assert b"letterboxd.com" not in response.data
+
+
+def test_listing_falls_back_to_tmdb_rating_when_no_letterboxd_data_yet(client, config, cinema):
+    # Feature 002 FR-007 requires the listing to display a rating for
+    # every movie with stored TMDB metadata. Feature 010 made the Rating
+    # column show the Letterboxd rating when available, which must not
+    # regress FR-007 for movies not yet Letterboxd-enriched - they should
+    # fall back to the stored TMDB rating (plain text, not linked).
+    storage.upsert_showtime(
+        config.db_path, cinema.id, "TMDB Only Movie", date(2026, 8, 1), time(18, 30),
+        "Standard", datetime(2026, 8, 1, 10, 0, 0),
+    )
+    storage.upsert_movie_metadata(
+        config.db_path, "TMDB Only Movie", match_status="matched", tmdb_id=10,
+        average_rating=6.9,
+    )
+    # No upsert_letterboxd_movie_data call at all - not yet enriched.
+
+    response = client.get("/")
+
+    assert response.status_code == 200
+    assert b"6.9" in response.data
     assert b"letterboxd.com" not in response.data
 
 
