@@ -109,5 +109,10 @@
   "107": "Validation Scenarios",
   "108": "Specification Quality Checklist: AMC Stonebriar 24 Showtime Ingestion Source",
   "109": "012-amc-stonebriar-source/spec.md",
-  "110": "2. Projection Format Extraction Logic"
+  "110": "2. Projection Format Extraction Logic",
+  "111": "Tasks: Cinemark West Plano XD and ScreenX Showtime Ingestion Source",
+  "112": "parse_cinemark_west_plano_html",
+  "113": "cinema_recs/__init__.py",
+  "114": "test_full_window_notifications.py",
+  "115": "1. Calendar Page Source & Parsing Method"
 }

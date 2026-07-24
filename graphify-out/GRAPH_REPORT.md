@@ -1,16 +1,16 @@
 # Graph Report - cinema-recs  (2026-07-23)
 
 ## Corpus Check
-- 175 files · ~135,848 words
+- 185 files · ~145,120 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1726 nodes · 2345 edges · 111 communities (105 shown, 6 thin omitted)
-- Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 6 edges (avg confidence: 0.75)
+- 1861 nodes · 2531 edges · 116 communities (109 shown, 7 thin omitted)
+- Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 7 edges (avg confidence: 0.76)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `af005c39`
+- Built from commit: `bd45d85f`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -119,63 +119,68 @@
 - Validation Scenarios
 - Specification Quality Checklist: AMC Stonebriar 24 Showtime Ingestion Source
 - 2. Projection Format Extraction Logic
+- Tasks: Cinemark West Plano XD and ScreenX Showtime Ingestion Source
+- parse_cinemark_west_plano_html
+- cinema_recs/__init__.py
+- test_full_window_notifications.py
+- 1. Calendar Page Source & Parsing Method
 
 ## God Nodes (most connected - your core abstractions)
-1. `run_ingestion()` - 37 edges
+1. `run_ingestion()` - 42 edges
 2. `run_notifications()` - 31 edges
-3. `get_connection()` - 27 edges
-4. `ScrapeResult` - 25 edges
-5. `run_recommendation_evaluation()` - 24 edges
-6. `ScrapedShowtime` - 24 edges
+3. `ScrapeResult` - 30 edges
+4. `ScrapedShowtime` - 28 edges
+5. `get_connection()` - 27 edges
+6. `run_recommendation_evaluation()` - 24 edges
 7. `run_enrichment()` - 20 edges
-8. `Config` - 17 edges
-9. `_config()` - 17 edges
-10. `load_config()` - 16 edges
+8. `parse_cinemark_west_plano_html()` - 19 edges
+9. `Config` - 17 edges
+10. `_config()` - 17 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `config()` --calls--> `Config`  [EXTRACTED]
   tests/integration/test_web_view.py → src/cinema_recs/config.py
-- `test_run_ingestion_records_failure_on_scrape_error()` --calls--> `run_ingestion()`  [EXTRACTED]
-  tests/unit/test_ingest.py → src/cinema_recs/ingest.py
+- `test_angelika_dallas_ingestion_records_failure_outcome()` --calls--> `run_ingestion()`  [EXTRACTED]
+  tests/integration/test_angelika_dallas_ingestion.py → src/cinema_recs/ingest.py
+- `test_cinemark_west_plano_ingestion_records_failure_outcome()` --calls--> `run_ingestion()`  [EXTRACTED]
+  tests/integration/test_cinemark_west_plano_ingestion.py → src/cinema_recs/ingest.py
 - `mock_scrapers()` --calls--> `ScrapeResult`  [EXTRACTED]
   tests/unit/test_main.py → src/cinema_recs/scraper.py
 - `test_looks_blocked_detects_cloudflare_interstitial()` --calls--> `looks_blocked()`  [EXTRACTED]
-  tests/unit/test_scraper.py → src/cinema_recs/scraper.py
-- `test_looks_blocked_false_for_normal_page()` --calls--> `looks_blocked()`  [EXTRACTED]
   tests/unit/test_scraper.py → src/cinema_recs/scraper.py
 
 ## Import Cycles
 - None detected.
 
-## Communities (111 total, 6 thin omitted)
+## Communities (116 total, 7 thin omitted)
 
 ### Community 0 - "storage.py"
-Cohesion: 0.05
-Nodes (80): Connection, Flask, bootstrap(), _log_run(), main(), _run_enrichment(), _run_ingestion_all(), _run_notifications_all() (+72 more)
+Cohesion: 0.06
+Nodes (79): Connection, Flask, bootstrap(), _log_run(), main(), _run_enrichment(), _run_ingestion_all(), _run_notifications_all() (+71 more)
 
 ### Community 1 - "run_enrichment"
-Cohesion: 0.09
-Nodes (45): BackgroundScheduler, _candidate_titles(), The raw title first, then an event-suffix-stripped variant if that     actually, Enrich every distinct movie title with no movie_metadata row yet     (spec FR-00, run_enrichment(), start_scheduler(), get_movie_details(), _get_with_retry() (+37 more)
+Cohesion: 0.10
+Nodes (43): _candidate_titles(), The raw title first, then an event-suffix-stripped variant if that     actually, Enrich every distinct movie title with no movie_metadata row yet     (spec FR-00, run_enrichment(), get_movie_details(), _get_with_retry(), match_title(), MatchResult (+35 more)
 
 ### Community 2 - "run_notifications"
-Cohesion: 0.15
-Nodes (27): POST a plain-text message to a Discord webhook. Raises on any     non-2xx respon, send_notification(), _build_cancelled_message(), _build_message(), _build_rescheduled_message(), Send a Discord notification the first time each movie's current,     continuous, run_notifications(), test_send_notification_posts_content_payload() (+19 more)
+Cohesion: 0.08
+Nodes (47): BackgroundScheduler, Config, load_config(), _load_letterboxd_rating_threshold(), _load_notifications_enabled(), Invalid/non-numeric values are treated as unset (spec FR-008),     never as a st, Enabled by default once a webhook URL is configured — the switch     exists to p, POST a plain-text message to a Discord webhook. Raises on any     non-2xx respon (+39 more)
 
 ### Community 3 - "run_ingestion"
 Cohesion: 0.12
-Nodes (23): NamedTuple, run_ingestion(), Fetch every showtime Texas Theatre currently has published,     starting from th, scrape_texas_theatre_showtimes(), ScrapedShowtime, ScrapeResult, test_amc_stonebriar_ingestion_end_to_end(), test_amc_stonebriar_ingestion_partial_outcome_when_walk_incomplete() (+15 more)
+Nodes (34): NamedTuple, run_ingestion(), ScrapedShowtime, ScrapeResult, test_amc_stonebriar_ingestion_end_to_end(), test_amc_stonebriar_ingestion_partial_outcome_when_walk_incomplete(), test_amc_stonebriar_ingestion_records_failure_outcome(), test_amc_stonebriar_ingestion_stale_reconciliation() (+26 more)
 
 ### Community 4 - "recommend.py"
-Cohesion: 0.07
-Nodes (60): Response, Config, BestOfList, fetch_best_of_list_slugs(), fetch_movie_rating(), _fetch_paginated_slugs(), fetch_watchlist_slugs(), _get_with_retry() (+52 more)
+Cohesion: 0.08
+Nodes (59): Response, BestOfList, fetch_best_of_list_slugs(), fetch_movie_rating(), _fetch_paginated_slugs(), fetch_watchlist_slugs(), _get_with_retry(), _raise_for_unexpected_status() (+51 more)
 
 ### Community 5 - "test_web_view.py"
-Cohesion: 0.06
-Nodes (20): load_config(), _load_letterboxd_rating_threshold(), _load_notifications_enabled(), Invalid/non-numeric values are treated as unset (spec FR-008),     never as a st, Enabled by default once a webhook URL is configured — the switch     exists to p, client(), config(), Feature 013 US3: recommendation reasons name the specific onboarded     Letterbo (+12 more)
+Cohesion: 0.07
+Nodes (5): client(), config(), Feature 013 US3: recommendation reasons name the specific onboarded     Letterbo, test_listing_shows_onboarded_list_display_names_in_reasons(), test_listing_shows_one_row_per_venue_for_movie_playing_at_multiple_venues()
 
 ### Community 6 - "scraper.py"
-Cohesion: 0.15
-Nodes (31): Any, RuntimeError, BlockedError, _click_angelika_date_with_retry(), _extract_angelika_labeled_dates(), _fetch_amc_stonebriar_page_with_retry(), fetch_angelika_dallas_films(), _fetch_page_html_with_retry() (+23 more)
+Cohesion: 0.11
+Nodes (38): Any, RuntimeError, BlockedError, _click_angelika_date_with_retry(), _extract_angelika_labeled_dates(), extract_cinemark_west_plano_dates(), _fetch_amc_stonebriar_page_with_retry(), fetch_angelika_dallas_films() (+30 more)
 
 ### Community 7 - "Tasks: Cinepolis McKinney Showtime Ingestion (Alpha Cinema)"
 Cohesion: 0.06
@@ -258,8 +263,8 @@ Cohesion: 0.10
 Nodes (20): Dependencies & Execution Order, Format: `[ID] [P?] [Story] Description`, Implementation for User Story 1, Implementation for User Story 2, Implementation for User Story 3, Implementation Strategy, MVP First (User Story 1 Only), Phase 1: Setup (Shared Infrastructure) (+12 more)
 
 ### Community 27 - "test_angelika_dallas_scraper.py"
-Cohesion: 0.15
-Nodes (20): parse_angelika_dallas_films(), _parse_angelika_date_strip_label(), _parse_angelika_datetime(), datetime, Labels are like "Today, 7/23", "Tomorrow, 7/24", "Sunday 7/26" —     always mont, Fold the already-captured initial page load's payload (covering     `labeled_dat, Map a `/films` API response into showtime records.      The endpoint returns fil, _walk_angelika_dallas_dates() (+12 more)
+Cohesion: 0.16
+Nodes (19): parse_angelika_dallas_films(), _parse_angelika_date_strip_label(), _parse_angelika_datetime(), Labels are like "Today, 7/23", "Tomorrow, 7/24", "Sunday 7/26" —     always mont, Fold the already-captured initial page load's payload (covering     `labeled_dat, Map a `/films` API response into showtime records.      The endpoint returns fil, _walk_angelika_dallas_dates(), _payload_for_date() (+11 more)
 
 ### Community 28 - "One-time setup"
 Cohesion: 0.20
@@ -327,7 +332,7 @@ Nodes (10): Decision: A dedicated `letterboxd.com/search/...` lookup is NOT used
 
 ### Community 44 - "Research: Texas Theatre Showtime Source Ingestion"
 Cohesion: 0.18
-Nodes (11): 1. Calendar Page Source & Parsing Method, 3. Timezone & DateTime Handling, 4. Deduplication & Idempotency, Alternatives Considered, Decision, Decision, Decision, Rationale (+3 more)
+Nodes (11): 2. Projection Format Extraction Logic, 3. Timezone & DateTime Handling, 4. Deduplication & Idempotency, Alternatives Considered, Decision, Decision, Decision, Rationale (+3 more)
 
 ### Community 45 - "test_ingest.py"
 Cohesion: 0.07
@@ -502,8 +507,8 @@ Cohesion: 0.13
 Nodes (19): _amc_stonebriar_looks_like_queue_gate(), _extract_amc_stonebriar_dates(), parse_amc_stonebriar_html(), _parse_amc_stonebriar_time(), _parse_listing_time(), time, True when Playwright's navigation was redirected to the Queue-It/     Cloudflare, Parse one day's AMC Stonebriar 24 showtimes page (research.md §3,     tasks.md T (+11 more)
 
 ### Community 100 - "Cinema"
-Cohesion: 0.21
-Nodes (14): _assert_dispatches_to(), _refuse_if_called(), _result(), test_run_ingestion_dispatches_on_angelika_dallas_source_type(), test_run_ingestion_dispatches_on_cinepolis_source_type(), test_run_ingestion_dispatches_on_texas_theatre_source_type(), test_run_ingestion_distinguishes_zero_found_from_failure(), test_run_ingestion_fails_loudly_for_unrecognized_source_type() (+6 more)
+Cohesion: 0.05
+Nodes (42): Content Quality, Feature Readiness, Notes, Requirement Completeness, Specification Quality Checklist: Cinemark West Plano XD and ScreenX Showtime Ingestion Source, Error Behaviors, Function Signature, Ingestion Dispatch Contract (+34 more)
 
 ### Community 101 - "_ensure_letterboxd_data_cached"
 Cohesion: 0.40
@@ -538,28 +543,44 @@ Cohesion: 0.33
 Nodes (5): Content Quality, Feature Readiness, Notes, Requirement Completeness, Specification Quality Checklist: AMC Stonebriar 24 Showtime Ingestion Source
 
 ### Community 110 - "2. Projection Format Extraction Logic"
+Cohesion: 0.08
+Nodes (26): 1. Site Platform & Fetch/Parse Method, 2. Presentation Format Extraction (including 70mm), 3. Ticket URL & Showtime Identity, 4. Date Window Discovery, 5. Timezone & DateTime Handling, 6. Non-Film Events, 7. Deduplication & Idempotency, Alternatives Considered (+18 more)
+
+### Community 111 - "Tasks: Cinemark West Plano XD and ScreenX Showtime Ingestion Source"
+Cohesion: 0.08
+Nodes (23): Dependencies & Execution Order, Format: `[ID] [P?] [Story] Description`, Implementation for User Story 1, Implementation for User Story 2, Implementation for User Story 3, Implementation Strategy, Incremental Delivery, MVP First (User Story 1 + User Story 2, both P1) (+15 more)
+
+### Community 112 - "parse_cinemark_west_plano_html"
+Cohesion: 0.13
+Nodes (22): _cinemark_format_badge_text(), _extract_cinemark_group_format(), _parse_cinemark_ticket_url_showtime(), parse_cinemark_west_plano_html(), datetime, Badge alt text like "Cinemark XD" carries a "Cinemark " prefix not     present o, One `ul.attribute-list--auditorium-attributes` group can carry more     than one, Each showtime's own `TicketSeatMap` link carries a `Showtime=`     query param w (+14 more)
+
+### Community 114 - "test_full_window_notifications.py"
+Cohesion: 0.48
+Nodes (4): _config(), _recommend(), test_far_out_showtime_survives_full_window_ingestion_without_false_alert(), test_genuinely_removed_showtime_still_triggers_cancellation_alert()
+
+### Community 115 - "1. Calendar Page Source & Parsing Method"
 Cohesion: 0.50
-Nodes (4): 2. Projection Format Extraction Logic, Alternatives Considered, Decision, Rationale
+Nodes (4): 1. Calendar Page Source & Parsing Method, Alternatives Considered, Decision, Rationale
 
 ## Knowledge Gaps
-- **835 isolated node(s):** `check-prerequisites.sh script`, `common.sh script`, `setup-plan.sh script`, `setup-tasks.sh script`, `docker-entrypoint.sh script` (+830 more)
+- **900 isolated node(s):** `check-prerequisites.sh script`, `common.sh script`, `setup-plan.sh script`, `setup-tasks.sh script`, `docker-entrypoint.sh script` (+895 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **6 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **7 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `load_config()` connect `test_web_view.py` to `storage.py`, `recommend.py`, `scraper.py`?**
+- **Why does `run_notifications()` connect `run_notifications` to `storage.py`, `test_full_window_notifications.py`?**
+  _High betweenness centrality (0.008) - this node is a cross-community bridge._
+- **Why does `run_ingestion()` connect `run_ingestion` to `storage.py`, `run_notifications`, `scraper.py`, `cinema_recs/__init__.py`, `test_full_window_notifications.py`?**
   _High betweenness centrality (0.006) - this node is a cross-community bridge._
-- **Why does `run_ingestion()` connect `run_ingestion` to `storage.py`, `run_enrichment`, `Cinema`, `scraper.py`?**
-  _High betweenness centrality (0.006) - this node is a cross-community bridge._
-- **Why does `run_notifications()` connect `run_notifications` to `storage.py`, `run_enrichment`, `run_ingestion`, `recommend.py`?**
-  _High betweenness centrality (0.006) - this node is a cross-community bridge._
-- **Are the 4 inferred relationships involving `run_ingestion()` (e.g. with `scrape_amc_stonebriar_showtimes()` and `scrape_angelika_dallas_showtimes()`) actually correct?**
-  _`run_ingestion()` has 4 INFERRED edges - model-reasoned connections that need verification._
+- **Why does `Config` connect `run_notifications` to `storage.py`, `test_full_window_notifications.py`, `recommend.py`, `test_web_view.py`?**
+  _High betweenness centrality (0.004) - this node is a cross-community bridge._
+- **Are the 5 inferred relationships involving `run_ingestion()` (e.g. with `scrape_amc_stonebriar_showtimes()` and `scrape_angelika_dallas_showtimes()`) actually correct?**
+  _`run_ingestion()` has 5 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `check-prerequisites.sh script`, `common.sh script`, `setup-plan.sh script` to the rest of the system?**
-  _835 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _900 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `storage.py` be split into smaller, more focused modules?**
-  _Cohesion score 0.05417236662106703 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.05518207282913165 - nodes in this community are weakly interconnected._
 - **Should `run_enrichment` be split into smaller, more focused modules?**
-  _Cohesion score 0.09351432880844646 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.10119047619047619 - nodes in this community are weakly interconnected._

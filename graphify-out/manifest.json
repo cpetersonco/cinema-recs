@@ -10,7 +10,7 @@
     "semantic_hash": ""
   },
   ".specify/feature.json": {
-    "mtime": 1784844128.4695826,
+    "mtime": 1784844523.3223433,
     "ast_hash": "271613c97386e6465ad5a827aba699f8",
     "semantic_hash": ""
   },
@@ -75,8 +75,8 @@
     "semantic_hash": ""
   },
   "main.py": {
-    "mtime": 1784844070.0772188,
-    "ast_hash": "1a90a9bae6a366028fc783fac83d6692",
+    "mtime": 1784844718.0913813,
+    "ast_hash": "b802d3f370d454d92d72e81e4271dae5",
     "semantic_hash": ""
   },
   "pyproject.toml": {
@@ -90,8 +90,8 @@
     "semantic_hash": ""
   },
   "src/cinema_recs/config.py": {
-    "mtime": 1784844070.080311,
-    "ast_hash": "958e12a28a2bd0d7810eb939edd1d8f3",
+    "mtime": 1784844554.9508877,
+    "ast_hash": "92a4673fc83f584d62737dc28515491d",
     "semantic_hash": ""
   },
   "src/cinema_recs/discord_client.py": {
@@ -105,8 +105,8 @@
     "semantic_hash": ""
   },
   "src/cinema_recs/ingest.py": {
-    "mtime": 1784844070.0805464,
-    "ast_hash": "e1fd08474c9068a048e0539bcb181af4",
+    "mtime": 1784844693.8237302,
+    "ast_hash": "216724834a944c57f194334a49641b87",
     "semantic_hash": ""
   },
   "src/cinema_recs/letterboxd_client.py": {
@@ -140,13 +140,13 @@
     "semantic_hash": ""
   },
   "src/cinema_recs/scraper.py": {
-    "mtime": 1784844070.081153,
-    "ast_hash": "f09243c03d01d79c7862c2de95e317c4",
+    "mtime": 1784844883.9148483,
+    "ast_hash": "33a39a1cbab23cd3da3475fb49c373dc",
     "semantic_hash": ""
   },
   "src/cinema_recs/storage.py": {
-    "mtime": 1784844070.0813653,
-    "ast_hash": "54cba144b0c18ee7512b9a9b3acfda97",
+    "mtime": 1784844611.4592013,
+    "ast_hash": "9ccb44598d12bba35e785e597b7344d6",
     "semantic_hash": ""
   },
   "src/cinema_recs/tmdb_client.py": {
@@ -220,8 +220,8 @@
     "semantic_hash": ""
   },
   "tests/unit/test_ingest.py": {
-    "mtime": 1784840675.4753509,
-    "ast_hash": "48ecba17b6667122b5ad0535eee13d5a",
+    "mtime": 1784844490.2360864,
+    "ast_hash": "41c42abf7490e75c3a0d02d022f581ce",
     "semantic_hash": ""
   },
   "tests/unit/test_letterboxd_client.py": {
@@ -770,8 +770,8 @@
     "semantic_hash": ""
   },
   "tests/unit/test_main.py": {
-    "mtime": 1784844070.0819695,
-    "ast_hash": "49a6ad95b7c2f0ba65bf061bf9dfa18b",
+    "mtime": 1784844943.9556038,
+    "ast_hash": "49ecf9069753caf028ba78aecb66292c",
     "semantic_hash": ""
   },
   "specs/011-tech-debt-cleanup/checklists/requirements.md": {
@@ -897,6 +897,56 @@
   "specs/012-amc-stonebriar-source/tasks.md": {
     "mtime": 1784844070.0800416,
     "ast_hash": "e71e479b2fb133d6ba200c8cde6bff4e",
+    "semantic_hash": ""
+  },
+  "tests/integration/test_cinemark_west_plano_ingestion.py": {
+    "mtime": 1784844490.2354445,
+    "ast_hash": "97156b18bf2c97f72de4b8b867eb0834",
+    "semantic_hash": ""
+  },
+  "tests/unit/test_cinemark_west_plano_scraper.py": {
+    "mtime": 1784844490.2357175,
+    "ast_hash": "3a1a6fc66a22fef0f62d01c7ce039a3b",
+    "semantic_hash": ""
+  },
+  "specs/012-cinemark-west-plano-source/checklists/requirements.md": {
+    "mtime": 1784844490.231833,
+    "ast_hash": "efd89db41e562ea5d7113b6069012840",
+    "semantic_hash": ""
+  },
+  "specs/012-cinemark-west-plano-source/contracts/scraper_interface.md": {
+    "mtime": 1784844490.232096,
+    "ast_hash": "937f1dc9292522cbc4927d26a40640fc",
+    "semantic_hash": ""
+  },
+  "specs/012-cinemark-west-plano-source/data-model.md": {
+    "mtime": 1784844490.2328885,
+    "ast_hash": "0596b6b758c780877b68e720a343166f",
+    "semantic_hash": ""
+  },
+  "specs/012-cinemark-west-plano-source/plan.md": {
+    "mtime": 1784844490.233055,
+    "ast_hash": "b2f121773b9e525592d37c568bff2320",
+    "semantic_hash": ""
+  },
+  "specs/012-cinemark-west-plano-source/quickstart.md": {
+    "mtime": 1784844490.2331965,
+    "ast_hash": "2afaa5719689a908ce3c5570f19fe729",
+    "semantic_hash": ""
+  },
+  "specs/012-cinemark-west-plano-source/research.md": {
+    "mtime": 1784844490.233456,
+    "ast_hash": "4e3fdfc54ceb4248f18b432b82cce63d",
+    "semantic_hash": ""
+  },
+  "specs/012-cinemark-west-plano-source/spec.md": {
+    "mtime": 1784844490.2336235,
+    "ast_hash": "0e802c7c5b85c9794c1a56ef0bf23a6a",
+    "semantic_hash": ""
+  },
+  "specs/012-cinemark-west-plano-source/tasks.md": {
+    "mtime": 1784844490.2338955,
+    "ast_hash": "c509886cac8a102c793dd806e1d79e71",
     "semantic_hash": ""
   }
 }
